@@ -1,5 +1,6 @@
 /**
- * SaldoCerto - Módulo de Despesas
+ * SaldoCerto - Módulo de Despesas (Supabase Integrado)
+ * Listagem, filtros por categoria e pagamento, gráficos e exclusão com RLS.
  */
 
 const DespesasModule = (() => {
@@ -45,10 +46,14 @@ const DespesasModule = (() => {
       }
     }
 
-    document.getElementById('statTotalExpense').textContent = SaldoCerto.formatCurrency(total);
-    document.getElementById('statTopExpenseCategory').textContent = topCat;
-    document.getElementById('statExpenseCount').textContent = count;
-    document.getElementById('statExpenseDailyAvg').textContent = SaldoCerto.formatCurrency(dailyAvg);
+    const statTotal = document.getElementById('statTotalExpense');
+    if (statTotal) statTotal.textContent = SaldoCerto.formatCurrency(total);
+    const statTop = document.getElementById('statTopExpenseCategory');
+    if (statTop) statTop.textContent = topCat;
+    const statCount = document.getElementById('statExpenseCount');
+    if (statCount) statCount.textContent = count;
+    const statAvg = document.getElementById('statExpenseDailyAvg');
+    if (statAvg) statAvg.textContent = SaldoCerto.formatCurrency(dailyAvg);
 
     const badge = document.getElementById('expenseBadgeCount');
     if (badge) badge.textContent = `${count} ${count === 1 ? 'despesa listada' : 'despesas listadas'}`;
@@ -101,15 +106,15 @@ const DespesasModule = (() => {
         },
         scales: {
           x: {
-            grid: { display: false },
-            ticks: { color: textColor, font: { family: 'Inter', size: 12 } }
+            ticks: { color: textColor },
+            grid: { display: false }
           },
           y: {
-            grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' },
             ticks: {
               color: textColor,
-              callback: (val) => 'R$ ' + (val >= 1000 ? (val/1000).toFixed(0) + 'k' : val)
-            }
+              callback: (value) => `R$ ${value}`
+            },
+            grid: { color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }
           }
         }
       }
@@ -117,18 +122,18 @@ const DespesasModule = (() => {
   };
 
   const renderTable = (expenses) => {
-    const tbody = document.getElementById('expensesTableBody');
+    const tbody = document.getElementById('expenseTableBody');
     if (!tbody) return;
 
     if (expenses.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7">
+          <td colspan="7" style="text-align: center; padding: var(--space-8);">
             <div class="empty-state">
-              <div class="empty-state-icon" style="background: var(--color-danger-light); color: var(--color-danger);"><i data-lucide="inbox"></i></div>
+              <div class="empty-state-icon"><i data-lucide="inbox"></i></div>
               <h4 class="empty-state-title">Nenhuma despesa encontrada</h4>
-              <p class="empty-state-desc">Você não possui despesas cadastradas para este mês ou com os filtros atuais.</p>
-              <button class="btn btn-primary btn-sm" onclick="DespesasModule.openAddExpenseModal()">
+              <p class="empty-state-desc">Nenhum gasto localizado para os filtros e período selecionados.</p>
+              <button class="btn btn-danger btn-sm" onclick="DespesasModule.openAddExpenseModal()">
                 <i data-lucide="plus-circle"></i> Adicionar Despesa
               </button>
             </div>
@@ -146,9 +151,9 @@ const DespesasModule = (() => {
           <div style="font-weight: 600;">${t.description}</div>
           <span style="font-size: 11px; color: var(--color-text-muted);">${t.notes || 'Sem observações'}</span>
         </td>
-        <td><span class="badge badge-warning">${t.category}</span></td>
-        <td><span class="badge badge-info">${t.paymentMethod || 'PIX'}</span></td>
-        <td><span class="badge badge-primary">${t.account || 'Nubank'}</span></td>
+        <td><span class="badge badge-danger">${t.category}</span></td>
+        <td><span class="badge badge-info">${t.account || 'Principal'}</span></td>
+        <td><span class="badge" style="background: var(--color-bg-subtle); color: var(--color-text-secondary);">${t.paymentMethod || 'PIX'}</span></td>
         <td style="color: var(--color-danger); font-weight: 700; font-size: var(--font-size-base);">
           - ${SaldoCerto.formatCurrency(t.amount)}
         </td>
@@ -166,8 +171,12 @@ const DespesasModule = (() => {
   };
 
   const handleDelete = (id) => {
-    SaldoCerto.confirmAction('Tem certeza que deseja excluir esta despesa?', () => {
-      SaldoCerto.deleteTransaction(id);
+    SaldoCerto.confirmAction('Tem certeza que deseja excluir esta despesa? O saldo da conta correspondente será estornado.', async () => {
+      if (window.SaldoCertoTransactions) {
+        await SaldoCertoTransactions.deleteExpense(id);
+      } else {
+        SaldoCerto.deleteTransaction(id);
+      }
       refresh();
     });
   };
@@ -177,15 +186,24 @@ const DespesasModule = (() => {
     SaldoCerto.openModal('newTransactionModal');
   };
 
-  const refresh = () => {
+  const refresh = async () => {
     const expenses = getFilteredExpenses();
     renderStats(expenses);
     renderChart(expenses);
     renderTable(expenses);
   };
 
-  const init = () => {
+  const init = async () => {
     SaldoCerto.initShell('despesas');
+    if (window.SaldoCertoAuth) {
+      await SaldoCertoAuth.requireAuth();
+    }
+    if (window.SaldoCertoProfile) {
+      await SaldoCertoProfile.syncUserProfileUI();
+    }
+    if (window.SaldoCertoTransactions) {
+      await SaldoCertoTransactions.getTransactions();
+    }
     refresh();
 
     document.getElementById('expenseSearchInput')?.addEventListener('input', refresh);

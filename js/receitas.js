@@ -1,5 +1,6 @@
 /**
- * SaldoCerto - Módulo de Receitas
+ * SaldoCerto - Módulo de Receitas (Supabase Integrado)
+ * Listagem, filtros por período e categoria, gráficos e exclusão com RLS.
  */
 
 const ReceitasModule = (() => {
@@ -42,10 +43,14 @@ const ReceitasModule = (() => {
       }
     }
 
-    document.getElementById('statTotalIncome').textContent = SaldoCerto.formatCurrency(total);
-    document.getElementById('statIncomeCount').textContent = count;
-    document.getElementById('statIncomeAverage').textContent = SaldoCerto.formatCurrency(avg);
-    document.getElementById('statTopCategory').textContent = topCat;
+    const statTotal = document.getElementById('statTotalIncome');
+    if (statTotal) statTotal.textContent = SaldoCerto.formatCurrency(total);
+    const statCount = document.getElementById('statIncomeCount');
+    if (statCount) statCount.textContent = count;
+    const statAvg = document.getElementById('statIncomeAverage');
+    if (statAvg) statAvg.textContent = SaldoCerto.formatCurrency(avg);
+    const statTop = document.getElementById('statTopCategory');
+    if (statTop) statTop.textContent = topCat;
 
     const badge = document.getElementById('incomeBadgeCount');
     if (badge) badge.textContent = `${count} ${count === 1 ? 'receita listada' : 'receitas listadas'}`;
@@ -98,15 +103,15 @@ const ReceitasModule = (() => {
         },
         scales: {
           x: {
-            grid: { display: false },
-            ticks: { color: textColor, font: { family: 'Inter', size: 12 } }
+            ticks: { color: textColor },
+            grid: { display: false }
           },
           y: {
-            grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' },
             ticks: {
               color: textColor,
-              callback: (val) => 'R$ ' + (val >= 1000 ? (val/1000).toFixed(0) + 'k' : val)
-            }
+              callback: (value) => `R$ ${value}`
+            },
+            grid: { color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }
           }
         }
       }
@@ -114,17 +119,17 @@ const ReceitasModule = (() => {
   };
 
   const renderTable = (incomes) => {
-    const tbody = document.getElementById('incomesTableBody');
+    const tbody = document.getElementById('incomeTableBody');
     if (!tbody) return;
 
     if (incomes.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6">
+          <td colspan="6" style="text-align: center; padding: var(--space-8);">
             <div class="empty-state">
               <div class="empty-state-icon"><i data-lucide="inbox"></i></div>
               <h4 class="empty-state-title">Nenhuma receita encontrada</h4>
-              <p class="empty-state-desc">Você ainda não possui receitas registradas neste período ou com os filtros aplicados.</p>
+              <p class="empty-state-desc">Nenhum lançamento de entrada localizado para os filtros e período selecionados.</p>
               <button class="btn btn-primary btn-sm" onclick="ReceitasModule.openAddIncomeModal()">
                 <i data-lucide="plus-circle"></i> Adicionar Receita
               </button>
@@ -162,8 +167,12 @@ const ReceitasModule = (() => {
   };
 
   const handleDelete = (id) => {
-    SaldoCerto.confirmAction('Tem certeza que deseja excluir esta receita? O saldo da conta será ajustado.', () => {
-      SaldoCerto.deleteTransaction(id);
+    SaldoCerto.confirmAction('Tem certeza que deseja excluir esta receita? O saldo da conta será ajustado.', async () => {
+      if (window.SaldoCertoTransactions) {
+        await SaldoCertoTransactions.deleteIncome(id);
+      } else {
+        SaldoCerto.deleteTransaction(id);
+      }
       refresh();
     });
   };
@@ -173,15 +182,24 @@ const ReceitasModule = (() => {
     SaldoCerto.openModal('newTransactionModal');
   };
 
-  const refresh = () => {
+  const refresh = async () => {
     const incomes = getFilteredIncomes();
     renderStats(incomes);
     renderChart(incomes);
     renderTable(incomes);
   };
 
-  const init = () => {
+  const init = async () => {
     SaldoCerto.initShell('receitas');
+    if (window.SaldoCertoAuth) {
+      await SaldoCertoAuth.requireAuth();
+    }
+    if (window.SaldoCertoProfile) {
+      await SaldoCertoProfile.syncUserProfileUI();
+    }
+    if (window.SaldoCertoTransactions) {
+      await SaldoCertoTransactions.getTransactions();
+    }
     refresh();
 
     document.getElementById('incomeSearchInput')?.addEventListener('input', refresh);
