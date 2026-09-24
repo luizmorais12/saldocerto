@@ -849,7 +849,11 @@ const SaldoCerto = (() => {
     const overlay = document.getElementById('notificationDrawerOverlay');
     if (!overlay) return;
 
-    renderNotificationItems();
+    if (window.NotificacoesModule) {
+      window.NotificacoesModule.renderNotificationDrawer();
+    } else {
+      renderNotificationItems();
+    }
     overlay.classList.add('active');
     document.body.style.overflow = 'hidden';
     if (window.lucide) window.lucide.createIcons();
@@ -864,6 +868,10 @@ const SaldoCerto = (() => {
   };
 
   const renderNotificationItems = () => {
+    if (window.NotificacoesModule) {
+      window.NotificacoesModule.renderNotificationDrawer();
+      return;
+    }
     const body = document.getElementById('notificationDrawerBody');
     if (!body) return;
 
@@ -923,6 +931,10 @@ const SaldoCerto = (() => {
   };
 
   const markAllNotificationsRead = () => {
+    if (window.NotificacoesModule) {
+      window.NotificacoesModule.markAllAsRead();
+      return;
+    }
     const dot = document.querySelector('.notification-dot');
     if (dot) dot.style.display = 'none';
     const badge = document.getElementById('unreadCountBadge');
