@@ -267,8 +267,21 @@ const RelatoriosModule = (() => {
     SaldoCerto.showToast('Relatório financeiro exportado com sucesso em CSV!', 'success');
   };
 
-  const init = () => {
+  const init = async () => {
     SaldoCerto.initShell('relatorios');
+    if (window.SaldoCertoAuth) {
+      await SaldoCertoAuth.requireAuth();
+    }
+    if (window.SaldoCertoProfile) {
+      await SaldoCertoProfile.syncUserProfileUI();
+    }
+    if (window.SaldoCertoTransactions) {
+      await SaldoCertoTransactions.getTransactions();
+    }
+    const printEl = document.getElementById('printReportPeriod');
+    if (printEl) {
+      printEl.textContent = `Demonstrativo gerado em ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`;
+    }
     renderReports();
     setupFilterButtons();
     window.addEventListener('saldocerto:themeChanged', renderReports);
