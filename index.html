@@ -298,6 +298,25 @@
       gap: var(--space-8);
       align-items: stretch;
     }
+    .pricing-card.single-plan {
+      max-width: 720px;
+      margin: 0 auto;
+      border: 2px solid var(--color-primary);
+      box-shadow: 0 15px 40px rgba(22, 163, 74, 0.15);
+      text-align: center;
+    }
+    .pricing-features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px 24px;
+      margin: 24px 0;
+      text-align: left;
+    }
+    @media (max-width: 640px) {
+      .pricing-features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
     .pricing-card {
       background: var(--color-card);
       border: 1px solid var(--color-border);
@@ -529,8 +548,8 @@
         <a href="login.html" class="btn btn-outline">
           <i data-lucide="log-in"></i> Entrar
         </a>
-        <a href="cadastro.html" class="btn btn-primary">
-          Começar agora <i data-lucide="arrow-right"></i>
+        <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+          <i data-lucide="zap"></i> Assinar por R$ 19,90
         </a>
       </div>
     </div>
@@ -553,19 +572,19 @@
     </p>
 
     <div class="hero-cta-group">
-      <a href="cadastro.html" class="btn btn-primary btn-lg">
-        Começar gratuitamente <i data-lucide="arrow-right"></i>
+      <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg">
+        Assinar por R$ 19,90/mês <i data-lucide="arrow-right"></i>
       </a>
-      <a href="#preview" class="btn btn-secondary btn-lg">
-        <i data-lucide="play-circle"></i> Ver demonstração
+      <a href="#planos" class="btn btn-secondary btn-lg">
+        <i data-lucide="sparkles"></i> Ver detalhes do plano
       </a>
     </div>
 
     <div class="hero-trust-bar">
-      <div class="trust-item"><i data-lucide="check-circle-2" class="text-success"></i> 100% Gratuito para começar</div>
-      <div class="trust-item"><i data-lucide="shield-check" class="text-success"></i> Seus dados protegidos</div>
-      <div class="trust-item"><i data-lucide="smartphone" class="text-success"></i> Acesso em qualquer dispositivo</div>
-      <div class="trust-item"><i data-lucide="star" class="text-warning"></i> Avaliação 4.9/5 por milhares de usuários</div>
+      <div class="trust-item"><i data-lucide="check-circle-2" class="text-success"></i> Apenas R$ 19,90/mês</div>
+      <div class="trust-item"><i data-lucide="shield-check" class="text-success"></i> Checkout 100% seguro via Kiwify</div>
+      <div class="trust-item"><i data-lucide="smartphone" class="text-success"></i> Acesso em celular e computador</div>
+      <div class="trust-item"><i data-lucide="lock" class="text-success"></i> Sem fidelidade — cancele quando quiser</div>
     </div>
   </section>
 
@@ -745,64 +764,65 @@
   <section id="planos" class="pricing-section">
     <div class="section-container">
       <div class="section-header">
-        <span class="section-badge">Preços Transparentes</span>
-        <h2 class="section-title">Escolha o plano ideal para a sua jornada</h2>
-        <p class="section-subtitle">Sem letras miúdas. Comece grátis e evolua quando desejar.</p>
+        <span class="section-badge">Assinatura Simples & Transparente</span>
+        <h2 class="section-title">Plano Completo por apenas R$ 19,90/mês</h2>
+        <p class="section-subtitle">Sem pegadinhas, sem taxas escondidas. Tenha acesso irrestrito a todas as ferramentas do SaldoCerto.</p>
       </div>
 
-      <div class="pricing-grid">
-        <!-- Gratuito -->
-        <div class="pricing-card">
+      <div style="max-width: 760px; margin: 0 auto;">
+        <div class="pricing-card featured single-plan" style="padding: var(--space-8) var(--space-6);">
+          <div class="featured-tag">Acesso Total Ilimitado</div>
+          
           <div>
-            <h3 style="font-size: var(--font-size-xl); font-weight: 700;">Gratuito</h3>
-            <p style="color: var(--color-text-muted); font-size: var(--font-size-sm);">Essencial para começar a organizar sua vida financeira.</p>
-            <div class="price-value">R$ 0 <span>/ para sempre</span></div>
-            <div class="pricing-features">
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Transações ilimitadas</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Até 3 contas e 2 cartões</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Gráficos mensais de fluxo</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Até 2 metas financeiras</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Modo claro e escuro</div>
-            </div>
-          </div>
-          <a href="dashboard.html" class="btn btn-secondary w-full">Começar Grátis</a>
-        </div>
+            <h3 style="font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-text);">SaldoCerto Premium</h3>
+            <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-top: 6px;">
+              A plataforma definitiva para organizar suas contas, eliminar dívidas e multiplicar seu patrimônio.
+            </p>
 
-        <!-- Pro (Destaque) -->
-        <div class="pricing-card featured">
-          <div class="featured-tag">Mais Escolhido</div>
-          <div>
-            <h3 style="font-size: var(--font-size-xl); font-weight: 700;">SaldoCerto Pro</h3>
-            <p style="color: var(--color-text-muted); font-size: var(--font-size-sm);">Para quem quer acelerar o crescimento do patrimônio.</p>
-            <div class="price-value">R$ 19,90 <span>/ mês</span></div>
-            <div class="pricing-features">
-              <div class="pricing-feature-item"><i data-lucide="check"></i> <strong>Tudo do plano gratuito</strong></div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Contas e cartões ilimitados</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Gestão de Investimentos & Dividendos</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Balanço Patrimonial Ativos x Dívidas</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Metas financeiras ilimitadas</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Exportação ilimitada em CSV / Excel</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Backup e restauração de dados</div>
+            <div class="price-value" style="margin: 20px 0 8px 0; display: flex; align-items: baseline; justify-content: center; gap: 8px;">
+              <span style="font-size: 1.15rem; color: var(--color-text-muted); text-decoration: line-through; font-weight: 500;">R$ 39,90</span>
+              <span style="font-size: 3rem; font-weight: 900; color: var(--color-primary);">R$ 19,90</span>
+              <span style="font-size: 1.1rem; color: var(--color-text-muted); font-weight: 600;">/ mês</span>
             </div>
-          </div>
-          <a href="dashboard.html" class="btn btn-primary w-full">Testar 14 Dias Grátis</a>
-        </div>
 
-        <!-- Familiar -->
-        <div class="pricing-card">
-          <div>
-            <h3 style="font-size: var(--font-size-xl); font-weight: 700;">Familiar / Premium</h3>
-            <p style="color: var(--color-text-muted); font-size: var(--font-size-sm);">Controle financeiro compartilhado para toda a família.</p>
-            <div class="price-value">R$ 34,90 <span>/ mês</span></div>
-            <div class="pricing-features">
-              <div class="pricing-feature-item"><i data-lucide="check"></i> <strong>Tudo do plano Pro</strong></div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Até 5 membros conectados</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Relatórios consolidados da casa</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Suporte prioritário via WhatsApp</div>
-              <div class="pricing-feature-item"><i data-lucide="check"></i> Acesso antecipado a novos recursos</div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--color-primary-light); color: var(--color-primary-dark); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700; margin-bottom: 24px;">
+              <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Sem carência ou fidelidade • Cancele quando quiser
+            </div>
+
+            <div class="pricing-features-grid">
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Transações & Categorias</strong> ilimitadas</span></div>
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Contas Bancárias & Carteiras</strong> sem limites</span></div>
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Cartões de Crédito</strong> e faturas parceladas</span></div>
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Metas Financeiras</strong> com cálculo automático</span></div>
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Investimentos</strong> (Ações, FIIs, CDB, Cripto, etc.)</span></div>
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Balanço Patrimonial</strong> (Ativos x Passivos)</span></div>
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Orçamentos Mensais</strong> com a Regra 50/30/20</span></div>
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Simulador de Juros Compostos</strong> & Rumo ao Milhão</span></div>
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Importador inteligente</strong> de extratos OFX e CSV</span></div>
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Relatórios Executivos</strong> com impressão em PDF</span></div>
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Modo Olho Mágico</strong> (Privacidade) & Tema Escuro</span></div>
+              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>App Instalável (PWA)</strong> no Celular e Computador</span></div>
             </div>
           </div>
-          <a href="dashboard.html" class="btn btn-outline w-full">Assinar Familiar</a>
+
+          <div style="margin-top: 16px;">
+            <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg w-full" style="padding: 16px 24px; font-size: 1.15rem; font-weight: 800; justify-content: center; box-shadow: 0 10px 30px rgba(22, 163, 74, 0.35);">
+              Assinar SaldoCerto Agora por R$ 19,90 <i data-lucide="arrow-right"></i>
+            </a>
+            
+            <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--color-text-muted); flex-wrap: wrap;">
+              <span style="display: inline-flex; align-items: center; gap: 5px;">
+                <i data-lucide="shield-check" style="width: 15px; height: 15px; color: var(--color-primary);"></i> Pagamento 100% seguro via Kiwify
+              </span>
+              <span style="display: inline-flex; align-items: center; gap: 5px;">
+                <i data-lucide="zap" style="width: 15px; height: 15px; color: var(--color-primary);"></i> Acesso imediato liberado
+              </span>
+              <span style="display: inline-flex; align-items: center; gap: 5px;">
+                <i data-lucide="credit-card" style="width: 15px; height: 15px; color: var(--color-primary);"></i> PIX e Cartão de Crédito
+              </span>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -819,11 +839,11 @@
     <div class="faq-list">
       <div class="faq-item active">
         <button class="faq-question">
-          <span>O SaldoCerto é gratuito?</span>
+          <span>Como funciona a assinatura do SaldoCerto?</span>
           <i data-lucide="chevron-down" class="faq-icon"></i>
         </button>
         <div class="faq-answer">
-          Sim! O plano gratuito permite organizar suas receitas, despesas, contas e metas essenciais sem nenhum custo e sem necessidade de cartão de crédito.
+          O SaldoCerto funciona através de uma assinatura mensal acessível de apenas R$ 19,90 por mês, sem contratos longos ou multas. Você tem acesso completo e irrestrito a todas as funcionalidades financeiras. O pagamento é processado com total segurança pela plataforma Kiwify via PIX ou Cartão de Crédito com liberação imediata, e você pode cancelar a qualquer momento sem taxas.
         </div>
       </div>
 
@@ -863,7 +883,7 @@
           <i data-lucide="chevron-down" class="faq-icon"></i>
         </button>
         <div class="faq-answer">
-          Sim! O SaldoCerto foi construído com design totalmente responsivo, adaptando-se com fluidez em telas de qualquer tamanho.
+          Sim! O SaldoCerto foi construído com design totalmente responsivo, adaptando-se com fluidez em telas de qualquer tamanho, com suporte a aplicativo PWA para instalação direta na sua tela inicial.
         </div>
       </div>
     </div>
@@ -873,9 +893,9 @@
   <section class="cta-final-section">
     <div class="cta-final-card">
       <h2>Pronto para assumir o controle do seu dinheiro?</h2>
-      <p>Junte-se a milhares de pessoas que deixaram o estresse financeiro para trás e hoje planejam seu futuro com clareza.</p>
-      <a href="cadastro.html" class="btn btn-secondary btn-lg" style="background: #FFFFFF; color: var(--color-primary-dark); font-weight: 800;">
-        Começar gratuitamente agora <i data-lucide="arrow-right"></i>
+      <p>Junte-se a milhares de pessoas que deixaram o estresse financeiro para trás e hoje planejam seu futuro com clareza por apenas R$ 19,90/mês.</p>
+      <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-lg" style="background: #FFFFFF; color: var(--color-primary-dark); font-weight: 800;">
+        Garantir Acesso Completo por R$ 19,90/mês <i data-lucide="arrow-right"></i>
       </a>
     </div>
   </section>
