@@ -734,6 +734,12 @@ const SaldoCerto = (() => {
         sidebar.classList.remove('open');
         overlay.classList.remove('active');
       });
+      sidebar.querySelectorAll('.nav-item').forEach(link => {
+        link.addEventListener('click', () => {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('active');
+        });
+      });
     }
 
     // Listeners do seletor de mês

@@ -1,8 +1,27 @@
 /* ==========================================================================
-   SaldoCerto - Responsividade & Breakpoints
+   SaldoCerto - Sistema Completo de Responsividade (Mobile First & Adaptações)
+   Garante 100% de responsividade em Smartphones (320px-480px), Tablets (768px-1024px),
+   Laptops e Monitores Ultrawide.
    ========================================================================== */
 
-/* Barras de Rolagem Estilizadas & Sutis */
+/* --- 1. PREVENÇÃO DE OVERFLOW & ESTILOS GLOBAIS DE ROLAGEM --- */
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Scrollbars Sutis e Customizadas */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -13,205 +32,556 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: var(--radius-full);
+  background: var(--color-border, #E2E8F0);
+  border-radius: var(--radius-full, 9999px);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-subtle);
+  background: var(--color-text-muted, #94A3B8);
 }
 
-/* Telas Grandes & Médias (Desktops Menores e Laptops) */
+/* --- 2. BREAKPOINT: LAPTOPS E TELAS MÉDIAS (<= 1200px) --- */
 @media (max-width: 1200px) {
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--space-4, 16px);
   }
 
   .charts-grid {
     grid-template-columns: 1fr !important;
+    gap: var(--space-5, 20px);
+  }
+
+  .cards-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
-/* Tablets e Telas Médias */
+/* --- 3. BREAKPOINT: TABLETS E DISPOSITIVOS MÉDIOS (<= 992px) --- */
 @media (max-width: 992px) {
+  /* Sidebar Mobile Drawer */
   .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px !important;
+    max-width: 85vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: 1000 !important;
     transform: translateX(-100%);
-    box-shadow: var(--shadow-xl);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35) !important;
   }
 
   .sidebar.open {
-    transform: translateX(0);
+    transform: translateX(0) !important;
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 995;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+  }
+
+  .sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
   }
 
   .main-wrapper {
-    margin-left: 0;
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
   }
 
   .mobile-menu-toggle {
-    display: flex !important;
+    display: inline-flex !important;
     align-items: center;
     justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md, 8px);
+    background: var(--color-bg-subtle, #F1F5F9);
+    color: var(--color-text, #0F172A);
+    border: 1px solid var(--color-border, #E2E8F0);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-menu-toggle:hover {
+    background: var(--color-primary-light, #DCFCE7);
+    color: var(--color-primary, #16A34A);
   }
 
   .top-header {
-    padding: 0 var(--space-4);
+    padding: 0 var(--space-4, 16px) !important;
   }
 
   .content-area {
-    padding: var(--space-5) var(--space-4);
+    padding: var(--space-5, 20px) var(--space-4, 16px) !important;
   }
 
   .cards-grid-3 {
     grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--space-4, 16px);
   }
 
   .cards-grid-2 {
     grid-template-columns: 1fr !important;
+    gap: var(--space-4, 16px);
+  }
+
+  /* Landing Page */
+  .features-grid,
+  .benefits-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .landing-nav-links {
+    display: none !important;
   }
 }
 
-/* Telas Médias & Celulares em Paisagem */
+/* --- 4. BREAKPOINT: SMARTPHONES GRANDES E TABLETS PEQUENOS (<= 768px) --- */
 @media (max-width: 768px) {
+  /* Previne zoom automático do iOS Safari em inputs */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
   .metrics-grid {
     grid-template-columns: 1fr !important;
-    gap: var(--space-4);
+    gap: var(--space-3, 12px);
   }
 
-  .cards-grid-3 {
+  .cards-grid-3,
+  .cards-grid-4 {
     grid-template-columns: 1fr !important;
   }
 
-  .cards-grid-2 {
-    grid-template-columns: 1fr !important;
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-3);
-  }
-
-  .page-header .btn {
-    width: 100%;
-  }
-
+  /* Cabeçalho do Dashboard */
   .top-header {
-    height: auto;
-    padding: var(--space-3) var(--space-4);
+    height: auto !important;
+    min-height: 64px;
+    padding: var(--space-3, 12px) var(--space-4, 16px) !important;
     flex-wrap: wrap;
-    gap: var(--space-3);
+    gap: var(--space-2, 8px);
   }
 
   .header-left {
     flex: 1;
-    min-width: 180px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3, 12px);
+    min-width: 140px;
   }
 
-  .header-right {
-    gap: var(--space-2);
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .month-selector {
-    padding: 0.15rem 0.35rem;
-  }
-
-  .current-month-display {
-    min-width: 90px;
-    font-size: var(--font-size-xs);
+  .header-greeting {
+    min-width: 0;
   }
 
   .greeting-title {
-    font-size: var(--font-size-base);
+    font-size: 15px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .greeting-subtitle {
-    display: none;
+    display: none !important;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+    flex-wrap: nowrap;
+  }
+
+  /* Seletor de Mês Responsivo */
+  .month-selector {
+    padding: 2px 6px !important;
+  }
+
+  .current-month-display {
+    min-width: 80px !important;
+    font-size: 12px !important;
+    padding: 0 4px;
+  }
+
+  /* Botões e Ações */
+  .page-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: var(--space-3, 12px);
+  }
+
+  .page-header .btn,
+  .page-header a.btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modais Responsivos */
+  .modal-overlay {
+    padding: var(--space-3, 12px) !important;
+    align-items: center !important;
   }
 
   .modal-dialog {
-    margin: var(--space-2);
-    max-height: 85vh;
-    border-radius: var(--radius-lg);
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    max-height: 90vh !important;
+    max-height: 90dvh !important;
+    border-radius: var(--radius-lg, 12px) !important;
+    padding: var(--space-4, 16px) !important;
   }
 
   .form-row {
     grid-template-columns: 1fr !important;
+    gap: var(--space-3, 12px);
   }
 
+  /* Gráficos em Mobile */
   .chart-canvas-container {
-    height: 240px;
+    height: 230px !important;
+    width: 100%;
   }
 
+  /* Tabelas Responsivas com Rolagem Suave */
+  .table-responsive {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin-bottom: var(--space-4, 16px);
+    border: 1px solid var(--color-border, #E2E8F0);
+    border-radius: var(--radius-lg, 12px);
+  }
+
+  .data-table {
+    min-width: 580px !important;
+    width: 100%;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: var(--space-3, 12px) var(--space-3, 12px) !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+  }
+
+  /* Itens de Transações */
   .transaction-item {
-    padding: var(--space-3) 0;
+    padding: var(--space-3, 12px) 0 !important;
+    gap: var(--space-2, 8px);
+  }
+
+  .tx-left {
+    gap: var(--space-2, 8px) !important;
+    min-width: 0;
+  }
+
+  .tx-title {
+    font-size: 13px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tx-meta {
+    font-size: 11px !important;
+    flex-wrap: wrap;
+    gap: 4px;
   }
 
   .tx-amount {
-    font-size: var(--font-size-sm);
+    font-size: 13px !important;
+    font-weight: 700 !important;
   }
 
-  .card {
-    padding: var(--space-4);
-  }
-}
-
-/* Ocultação de textos em botões de cabeçalho em telas compactas */
-@media (max-width: 640px) {
-  .header-right .btn .btn-text {
-    display: none;
+  .tx-account-badge {
+    display: none !important;
   }
 
-  .header-right .btn {
-    padding: 0.5rem 0.75rem;
+  /* Landing Page */
+  .hero-section {
+    padding: var(--space-10, 40px) var(--space-4, 16px) var(--space-8, 32px) !important;
   }
 
-  .theme-card-picker {
-    grid-template-columns: 1fr !important;
+  .hero-title {
+    font-size: clamp(2rem, 6vw, 2.75rem) !important;
   }
 
-  .data-table th, .data-table td {
-    padding: var(--space-3) var(--space-2);
-    font-size: var(--font-size-xs);
-  }
-}
-
-/* Smartphones Pequenos */
-@media (max-width: 480px) {
-  .metric-value {
-    font-size: var(--font-size-xl) !important;
+  .hero-subtitle {
+    font-size: 1rem !important;
   }
 
-  .chart-filters {
-    overflow-x: auto;
-    width: 100%;
-    padding: 3px;
-  }
-
-  .chart-filter-btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 11px;
-    flex-shrink: 0;
-  }
-
-  .toast-container {
-    left: var(--space-3);
-    right: var(--space-3);
-    bottom: var(--space-3);
-    max-width: none;
+  .hero-cta-group {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: var(--space-3, 12px) !important;
   }
 
   .hero-cta-group .btn {
-    width: 100%;
+    width: 100% !important;
+    justify-content: center !important;
   }
 
+  .steps-grid,
+  .pricing-grid,
+  .footer-container {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-6, 24px);
+  }
+
+  .pricing-card.featured {
+    transform: none !important;
+  }
+
+  /* Drawer de Notificações */
+  .notification-drawer {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    right: 0 !important;
+  }
+
+  /* Command Palette */
+  #commandPaletteModal .modal-dialog {
+    width: 95vw !important;
+    margin-top: 5vh !important;
+    max-height: 80vh !important;
+  }
+}
+
+/* --- 5. BREAKPOINT: SMARTPHONES MÉDIOS E PEQUENOS (<= 640px) --- */
+@media (max-width: 640px) {
+  /* Esconde textos de botões com ícones no header para não quebrar a barra */
+  .header-right .btn span:not(.badge),
+  .header-right .btn-text {
+    display: none !important;
+  }
+
+  .header-right .btn {
+    padding: 0.5rem !important;
+    min-width: 38px;
+    height: 38px;
+    justify-content: center;
+  }
+
+  .header-right .btn-primary {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  .header-right .btn-primary span {
+    display: inline !important;
+  }
+
+  /* Cards e Containers */
+  .card {
+    padding: var(--space-4, 16px) !important;
+    border-radius: var(--radius-lg, 12px) !important;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: var(--space-2, 8px);
+  }
+
+  .card-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Landing Page Nav */
+  .landing-nav-container {
+    padding: 0 var(--space-4, 16px) !important;
+    height: 64px !important;
+  }
+
+  .landing-logo img {
+    height: 34px !important;
+  }
+
+  .landing-nav-actions .btn {
+    padding: 0.45rem 0.75rem !important;
+    font-size: 13px !important;
+  }
+
+  /* Telas de Autenticação */
+  .auth-header {
+    padding: var(--space-4, 16px) !important;
+  }
+
+  .auth-brand img {
+    height: 32px !important;
+  }
+
+  .auth-brand-text {
+    font-size: 18px !important;
+  }
+
+  .auth-main {
+    padding: var(--space-2, 8px) var(--space-4, 16px) var(--space-8, 32px) !important;
+  }
+
+  .auth-card {
+    padding: var(--space-5, 20px) var(--space-4, 16px) !important;
+    border-radius: var(--radius-lg, 12px) !important;
+  }
+
+  .auth-title {
+    font-size: 20px !important;
+  }
+
+  .auth-subtitle {
+    font-size: 13px !important;
+    margin-bottom: var(--space-4, 16px) !important;
+  }
+
+  /* Onboarding */
+  .onboarding-card {
+    padding: var(--space-5, 20px) var(--space-4, 16px) !important;
+  }
+
+  .step-indicator {
+    margin-bottom: var(--space-6, 24px) !important;
+  }
+
+  .step-dot {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 10px !important;
+  }
+}
+
+/* --- 6. BREAKPOINT: TELAS ULTRA-COMPACTAS (<= 480px - Ex: iPhone SE, Galaxy A) --- */
+@media (max-width: 480px) {
+  /* Métricas */
+  .metric-value {
+    font-size: 1.35rem !important;
+    line-height: 1.2;
+  }
+
+  .metric-trend {
+    font-size: 11px !important;
+  }
+
+  /* Filtros de Gráfico */
+  .chart-filters {
+    overflow-x: auto !important;
+    width: 100% !important;
+    padding: 2px !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: flex !important;
+    gap: 4px !important;
+  }
+
+  .chart-filter-btn {
+    padding: 0.3rem 0.55rem !important;
+    font-size: 11px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Toasts */
+  .toast-container {
+    left: var(--space-3, 12px) !important;
+    right: var(--space-3, 12px) !important;
+    bottom: var(--space-3, 12px) !important;
+    max-width: none !important;
+  }
+
+  .toast {
+    width: 100% !important;
+    font-size: 13px !important;
+  }
+
+  /* Cartão de Crédito Visual */
   .credit-card-visual {
-    padding: var(--space-4);
-    min-height: 180px;
+    padding: var(--space-4, 16px) !important;
+    min-height: 175px !important;
+    border-radius: var(--radius-lg, 12px) !important;
   }
 
   .card-number-display {
-    font-size: 1.05rem;
+    font-size: 1rem !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  .card-footer-info {
+    font-size: 11px !important;
+  }
+
+  /* Footer de Modais em Mobile */
+  .modal-footer {
+    flex-direction: column-reverse !important;
+    gap: var(--space-2, 8px) !important;
+  }
+
+  .modal-footer .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Simulador de Investimentos */
+  .sim-result-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .milestone-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dropzone do Importador */
+  .upload-dropzone {
+    padding: var(--space-6, 24px) var(--space-3, 12px) !important;
+  }
+
+  /* Configurações - Abas de navegação */
+  .settings-nav {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    padding-bottom: 4px;
+    gap: 4px;
+  }
+
+  .settings-tab {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    flex-shrink: 0;
+  }
+}
+
+/* --- 7. AJUSTES ESPECÍFICOS PARA TELAS COM ALTURA REDUZIDA (Landscape Mobile) --- */
+@media (max-height: 520px) {
+  .modal-dialog {
+    max-height: 94vh !important;
+  }
+
+  .sidebar-content {
+    gap: var(--space-2, 8px);
+  }
+
+  .sidebar-header {
+    height: 50px;
+    padding: var(--space-2, 8px) var(--space-4, 16px);
   }
 }

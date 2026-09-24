@@ -255,3 +255,32 @@
 .auth-badge-demo strong {
   color: var(--color-text);
 }
+
+/* Responsividade de Telas de Autenticação */
+@media (max-width: 640px) {
+  .auth-header {
+    padding: var(--space-4) var(--space-4);
+  }
+  .auth-brand img {
+    height: 32px;
+  }
+  .auth-brand-text {
+    font-size: var(--font-size-lg);
+  }
+  .auth-main {
+    padding: var(--space-2) var(--space-4) var(--space-8);
+  }
+  .auth-card {
+    padding: var(--space-6) var(--space-5);
+    border-radius: var(--radius-lg);
+  }
+  .auth-title {
+    font-size: var(--font-size-xl);
+  }
+}
+
+@media (max-width: 400px) {
+  .auth-card {
+    padding: var(--space-5) var(--space-4);
+  }
+}
