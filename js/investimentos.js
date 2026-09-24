@@ -1,29 +1,199 @@
 /**
- * SaldoCerto - Módulo de Investimentos
+ * SaldoCerto - Módulo de Investimentos (Supabase Integrado)
+ * CRUD completo, cálculo de rentabilidade em tempo real e gráficos de alocação com RLS.
  */
 
 const InvestimentosModule = (() => {
   let invChart = null;
 
-  const renderInvestments = () => {
-    const state = SaldoCerto.getState();
-    const list = state.investments || [];
+  /**
+   * Busca a carteira de investimentos do usuário no Supabase
+   */
+  const getInvestments = async () => {
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      try {
+        const user = await SaldoCertoAuth.getCurrentUser();
+        if (!user) return [];
+
+        const { data, error } = await window.supabaseClient
+          .from('investments')
+          .select('*')
+          .order('current_amount', { ascending: false });
+
+        if (error) {
+          console.error('[Investimentos Supabase] Erro ao buscar:', error);
+          return SaldoCerto.getState().investments || [];
+        }
+
+        const mapped = (data || []).map(inv => {
+          const invested = Number(inv.invested_amount || 0);
+          const current = Number(inv.current_amount || 0);
+          const profit = current - invested;
+          const yieldPct = invested > 0 ? (profit / invested) * 100 : 0;
+
+          return {
+            id: inv.id,
+            name: inv.name,
+            category: inv.type,
+            institution: inv.institution || 'Corretora',
+            investedAmount: invested,
+            currentAmount: current,
+            profit: profit,
+            yieldPercent: yieldPct,
+            purchaseDate: inv.purchase_date,
+            notes: inv.notes || ''
+          };
+        });
+
+        SaldoCerto.getState().investments = mapped;
+        return mapped;
+      } catch (err) {
+        console.error('[Investimentos Supabase] Exceção:', err);
+        return SaldoCerto.getState().investments || [];
+      }
+    }
+    return SaldoCerto.getState().investments || [];
+  };
+
+  /**
+   * Cadastra novo ativo de investimento
+   */
+  const createInvestment = async (invData) => {
+    const invested = parseFloat(invData.investedAmount) || 0;
+    const current = parseFloat(invData.currentAmount) || 0;
+    const profit = current - invested;
+    const yieldPct = invested > 0 ? (profit / invested) * 100 : 0;
+
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { data, error } = await window.supabaseClient
+        .from('investments')
+        .insert({
+          user_id: user.id,
+          name: invData.name.trim(),
+          type: invData.category || 'Outros',
+          institution: invData.institution || 'Corretora',
+          invested_amount: invested,
+          current_amount: current,
+          return_amount: profit,
+          return_percentage: yieldPct,
+          purchaseDate: invData.purchaseDate || new Date().toISOString().split('T')[0],
+          notes: invData.notes || ''
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[Investimentos Supabase] Erro ao cadastrar:', error);
+        throw error;
+      }
+
+      const created = {
+        id: data.id,
+        name: data.name,
+        category: data.type,
+        institution: data.institution,
+        investedAmount: Number(data.invested_amount),
+        currentAmount: Number(data.current_amount),
+        profit: profit,
+        yieldPercent: yieldPct
+      };
+
+      SaldoCerto.getState().investments.push(created);
+      return created;
+    } else {
+      return SaldoCerto.addInvestment(invData);
+    }
+  };
+
+  /**
+   * Atualiza um investimento existente
+   */
+  const updateInvestment = async (id, invData) => {
+    const invested = parseFloat(invData.investedAmount) || 0;
+    const current = parseFloat(invData.currentAmount) || 0;
+    const profit = current - invested;
+    const yieldPct = invested > 0 ? (profit / invested) * 100 : 0;
+
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { data, error } = await window.supabaseClient
+        .from('investments')
+        .update({
+          name: invData.name.trim(),
+          type: invData.category,
+          institution: invData.institution,
+          invested_amount: invested,
+          current_amount: current,
+          return_amount: profit,
+          return_percentage: yieldPct,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  };
+
+  /**
+   * Exclui um investimento
+   */
+  const deleteInvestment = async (id) => {
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { error } = await window.supabaseClient
+        .from('investments')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('[Investimentos Supabase] Erro ao deletar:', error);
+        throw error;
+      }
+    }
+
+    SaldoCerto.getState().investments = (SaldoCerto.getState().investments || []).filter(i => i.id !== id);
+    SaldoCerto.saveData();
+  };
+
+  /**
+   * Renderização de tela, estatísticas e gráficos
+   */
+  const renderInvestments = async () => {
+    const list = await getInvestments();
 
     const totalInvested = list.reduce((sum, inv) => sum + Number(inv.currentAmount || 0), 0);
     const totalPrincipal = list.reduce((sum, inv) => sum + Number(inv.investedAmount || 0), 0);
     const totalProfit = totalInvested - totalPrincipal;
     const yieldPercent = totalPrincipal > 0 ? ((totalProfit / totalPrincipal) * 100).toFixed(2) : 0;
 
-    document.getElementById('statInvestedTotal').textContent = SaldoCerto.formatCurrency(totalInvested);
-    document.getElementById('statPrincipalTotal').textContent = SaldoCerto.formatCurrency(totalPrincipal);
+    const statTotal = document.getElementById('statInvestedTotal');
+    if (statTotal) statTotal.textContent = SaldoCerto.formatCurrency(totalInvested);
+    const statPrinc = document.getElementById('statPrincipalTotal');
+    if (statPrinc) statPrinc.textContent = SaldoCerto.formatCurrency(totalPrincipal);
     
     const profitEl = document.getElementById('statProfitTotal');
-    profitEl.textContent = `${totalProfit >= 0 ? '+' : '-'} ${SaldoCerto.formatCurrency(Math.abs(totalProfit))}`;
-    profitEl.style.color = totalProfit >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+    if (profitEl) {
+      profitEl.textContent = `${totalProfit >= 0 ? '+' : '-'} ${SaldoCerto.formatCurrency(Math.abs(totalProfit))}`;
+      profitEl.style.color = totalProfit >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+    }
 
     const yieldEl = document.getElementById('statYieldPercent');
-    yieldEl.textContent = `${yieldPercent >= 0 ? '+' : ''}${yieldPercent}%`;
-    yieldEl.style.color = yieldPercent >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+    if (yieldEl) {
+      yieldEl.textContent = `${yieldPercent >= 0 ? '+' : ''}${yieldPercent}%`;
+      yieldEl.style.color = yieldPercent >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+    }
 
     const badge = document.getElementById('investmentsBadgeCount');
     if (badge) badge.textContent = `${list.length} ${list.length === 1 ? 'ativo' : 'ativos'}`;
@@ -102,13 +272,13 @@ const InvestimentosModule = (() => {
     if (list.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="8">
+          <td colspan="7">
             <div class="empty-state">
               <div class="empty-state-icon"><i data-lucide="trending-up"></i></div>
-              <h4 class="empty-state-title">Nenhum investimento registrado</h4>
-              <p class="empty-state-desc">Cadastre suas aplicações financeiras para acompanhar a rentabilidade e rendimento.</p>
+              <h4 class="empty-state-title">Nenhum investimento cadastrado</h4>
+              <p class="empty-state-desc">Cadastre suas aplicações financeiras de renda fixa ou renda variável no Supabase.</p>
               <button class="btn btn-primary btn-sm" onclick="InvestimentosModule.openAddInvestmentModal()">
-                <i data-lucide="plus-circle"></i> Adicionar Ativo
+                <i data-lucide="plus-circle"></i> Cadastrar Primeiro Investimento
               </button>
             </div>
           </td>
@@ -119,23 +289,26 @@ const InvestimentosModule = (() => {
     }
 
     tbody.innerHTML = list.map(inv => {
-      const profit = inv.currentAmount - inv.investedAmount;
-      const pct = inv.investedAmount > 0 ? ((profit / inv.investedAmount) * 100).toFixed(2) : 0;
-      const profitColor = profit >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
-      const profitSign = profit >= 0 ? '+' : '-';
+      const profit = Number(inv.profit || (inv.currentAmount - inv.investedAmount));
+      const yieldPct = Number(inv.yieldPercent || (inv.investedAmount > 0 ? (profit / inv.investedAmount) * 100 : 0));
+      const isPositive = profit >= 0;
 
       return `
         <tr>
-          <td><strong>${inv.name}</strong></td>
+          <td>
+            <strong>${inv.name}</strong>
+          </td>
           <td><span class="badge badge-info">${inv.category}</span></td>
-          <td><span class="badge badge-warning">${inv.institution}</span></td>
+          <td>${inv.institution || '—'}</td>
           <td>${SaldoCerto.formatCurrency(inv.investedAmount)}</td>
           <td><strong>${SaldoCerto.formatCurrency(inv.currentAmount)}</strong></td>
-          <td style="color: ${profitColor}; font-weight: 700;">
-            ${profitSign} ${SaldoCerto.formatCurrency(Math.abs(profit))}
-          </td>
-          <td style="color: ${profitColor}; font-weight: 700;">
-            ${pct >= 0 ? '+' : ''}${pct}%
+          <td>
+            <div style="color: ${isPositive ? 'var(--color-success)' : 'var(--color-danger)'}; font-weight: 700;">
+              ${isPositive ? '+' : ''}${SaldoCerto.formatCurrency(profit)}
+            </div>
+            <span style="font-size: 11px; color: ${isPositive ? 'var(--color-success)' : 'var(--color-danger)'}; font-weight: 600;">
+              (${isPositive ? '+' : ''}${yieldPct.toFixed(2)}%)
+            </span>
           </td>
           <td>
             <div class="table-actions">
@@ -157,75 +330,89 @@ const InvestimentosModule = (() => {
   const openAddInvestmentModal = () => {
     document.getElementById('investmentForm').reset();
     document.getElementById('editInvId').value = '';
-    document.getElementById('invModalTitle').innerHTML = '<i data-lucide="trending-up" class="text-primary"></i> Novo Ativo de Investimento';
+    document.getElementById('invModalTitle').innerHTML = '<i data-lucide="trending-up" class="text-primary"></i> Novo Investimento';
     SaldoCerto.openModal('investmentModal');
+    if (window.lucide) window.lucide.createIcons();
   };
 
   const openEditInvestmentModal = (id) => {
-    const state = SaldoCerto.getState();
-    const inv = state.investments.find(i => i.id === id);
+    const list = SaldoCerto.getState().investments || [];
+    const inv = list.find(i => i.id === id);
     if (!inv) return;
 
     document.getElementById('editInvId').value = inv.id;
     document.getElementById('invName').value = inv.name;
     document.getElementById('invCategory').value = inv.category;
     document.getElementById('invInstitution').value = inv.institution;
-    document.getElementById('invInvestedAmount').value = inv.investedAmount;
-    document.getElementById('invCurrentAmount').value = inv.currentAmount;
+    const investedEl = document.getElementById('invInvestedAmount') || document.getElementById('invInvested');
+    const currentEl = document.getElementById('invCurrentAmount') || document.getElementById('invCurrent');
+    if (investedEl) investedEl.value = inv.investedAmount;
+    if (currentEl) currentEl.value = inv.currentAmount;
     document.getElementById('invModalTitle').innerHTML = '<i data-lucide="edit-3" class="text-primary"></i> Editar Investimento';
 
     SaldoCerto.openModal('investmentModal');
+    if (window.lucide) window.lucide.createIcons();
   };
 
-  const handleSaveInvestment = (e) => {
+  const handleSaveInvestment = async (e) => {
     e.preventDefault();
     const editId = document.getElementById('editInvId').value;
     const name = document.getElementById('invName').value.trim();
     const category = document.getElementById('invCategory').value;
     const institution = document.getElementById('invInstitution').value.trim();
-    const investedAmount = parseFloat(document.getElementById('invInvestedAmount').value) || 0;
-    const currentAmount = parseFloat(document.getElementById('invCurrentAmount').value) || 0;
+    const investedAmount = (document.getElementById('invInvestedAmount') || document.getElementById('invInvested'))?.value || 0;
+    const currentAmount = (document.getElementById('invCurrentAmount') || document.getElementById('invCurrent'))?.value || 0;
 
-    const state = SaldoCerto.getState();
-    state.investments = state.investments || [];
-
-    if (editId) {
-      const inv = state.investments.find(i => i.id === editId);
-      if (inv) {
-        inv.name = name;
-        inv.category = category;
-        inv.institution = institution;
-        inv.investedAmount = investedAmount;
-        inv.currentAmount = currentAmount;
-        SaldoCerto.saveData();
-        SaldoCerto.showToast(`Investimento "${inv.name}" atualizado!`, 'success');
-      }
-    } else {
-      SaldoCerto.addInvestment({ name, category, institution, investedAmount, currentAmount });
+    if (!name || !currentAmount) {
+      SaldoCerto.showToast('Informe o nome e o valor atual.', 'warning');
+      return;
     }
 
-    SaldoCerto.closeModal('investmentModal');
-    renderInvestments();
+    try {
+      if (editId) {
+        await updateInvestment(editId, { name, category, institution, investedAmount, currentAmount });
+        SaldoCerto.showToast(`Investimento "${name}" atualizado!`, 'success');
+      } else {
+        await createInvestment({ name, category, institution, investedAmount, currentAmount });
+        SaldoCerto.showToast(`Investimento "${name}" cadastrado!`, 'success');
+      }
+
+      SaldoCerto.closeModal('investmentModal');
+      await renderInvestments();
+    } catch (err) {
+      SaldoCerto.showToast('Erro ao salvar investimento.', 'danger');
+    }
   };
 
   const handleDelete = (id) => {
-    SaldoCerto.confirmAction('Tem certeza que deseja remover este ativo da carteira?', () => {
-      const state = SaldoCerto.getState();
-      state.investments = (state.investments || []).filter(i => i.id !== id);
-      SaldoCerto.saveData();
-      SaldoCerto.showToast('Investimento removido.', 'info');
-      renderInvestments();
+    SaldoCerto.confirmAction('Tem certeza que deseja excluir este ativo da sua carteira?', async () => {
+      try {
+        await deleteInvestment(id);
+        SaldoCerto.showToast('Investimento excluído com sucesso.', 'info');
+        await renderInvestments();
+      } catch (err) {
+        SaldoCerto.showToast('Erro ao excluir investimento.', 'danger');
+      }
     });
   };
 
-  const init = () => {
+  const init = async () => {
     SaldoCerto.initShell('investimentos');
-    renderInvestments();
-    window.addEventListener('saldocerto:themeChanged', renderInvestments);
+    if (window.SaldoCertoAuth) {
+      await SaldoCertoAuth.requireAuth();
+    }
+    if (window.SaldoCertoProfile) {
+      await SaldoCertoProfile.syncUserProfileUI();
+    }
+    await renderInvestments();
   };
 
   return {
     init,
+    getInvestments,
+    createInvestment,
+    updateInvestment,
+    deleteInvestment,
     renderInvestments,
     openAddInvestmentModal,
     openEditInvestmentModal,
