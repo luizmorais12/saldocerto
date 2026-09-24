@@ -2,14 +2,33 @@
    SaldoCerto - Responsividade & Breakpoints
    ========================================================================== */
 
+/* Barras de Rolagem Estilizadas & Sutis */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-subtle);
+}
+
 /* Telas Grandes & Médias (Desktops Menores e Laptops) */
 @media (max-width: 1200px) {
   .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   .charts-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -29,7 +48,7 @@
   }
 
   .mobile-menu-toggle {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
   }
@@ -45,12 +64,16 @@
   .cards-grid-3 {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+
+  .cards-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
 }
 
-/* Dispositivos Móveis e Smartphones */
+/* Telas Médias & Celulares em Paisagem */
 @media (max-width: 768px) {
   .metrics-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: var(--space-4);
   }
 
@@ -76,15 +99,18 @@
     height: auto;
     padding: var(--space-3) var(--space-4);
     flex-wrap: wrap;
-    gap: var(--space-2);
+    gap: var(--space-3);
   }
 
   .header-left {
     flex: 1;
+    min-width: 180px;
   }
 
   .header-right {
     gap: var(--space-2);
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .month-selector {
@@ -92,7 +118,7 @@
   }
 
   .current-month-display {
-    min-width: 100px;
+    min-width: 90px;
     font-size: var(--font-size-xs);
   }
 
@@ -107,10 +133,11 @@
   .modal-dialog {
     margin: var(--space-2);
     max-height: 85vh;
+    border-radius: var(--radius-lg);
   }
 
   .form-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 
   .chart-canvas-container {
@@ -124,28 +151,67 @@
   .tx-amount {
     font-size: var(--font-size-sm);
   }
+
+  .card {
+    padding: var(--space-4);
+  }
+}
+
+/* Ocultação de textos em botões de cabeçalho em telas compactas */
+@media (max-width: 640px) {
+  .header-right .btn .btn-text {
+    display: none;
+  }
+
+  .header-right .btn {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .theme-card-picker {
+    grid-template-columns: 1fr !important;
+  }
+
+  .data-table th, .data-table td {
+    padding: var(--space-3) var(--space-2);
+    font-size: var(--font-size-xs);
+  }
 }
 
 /* Smartphones Pequenos */
 @media (max-width: 480px) {
   .metric-value {
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-xl) !important;
   }
 
   .chart-filters {
     overflow-x: auto;
     width: 100%;
+    padding: 3px;
   }
 
   .chart-filter-btn {
     padding: 0.25rem 0.5rem;
     font-size: 11px;
+    flex-shrink: 0;
   }
 
   .toast-container {
-    left: var(--space-4);
-    right: var(--space-4);
-    bottom: var(--space-4);
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: var(--space-3);
     max-width: none;
+  }
+
+  .hero-cta-group .btn {
+    width: 100%;
+  }
+
+  .credit-card-visual {
+    padding: var(--space-4);
+    min-height: 180px;
+  }
+
+  .card-number-display {
+    font-size: 1.05rem;
   }
 }
