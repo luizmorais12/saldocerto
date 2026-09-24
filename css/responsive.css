@@ -1,0 +1,151 @@
+/* ==========================================================================
+   SaldoCerto - Responsividade & Breakpoints
+   ========================================================================== */
+
+/* Telas Grandes & Médias (Desktops Menores e Laptops) */
+@media (max-width: 1200px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablets e Telas Médias */
+@media (max-width: 992px) {
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-wrapper {
+    margin-left: 0;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .top-header {
+    padding: 0 var(--space-4);
+  }
+
+  .content-area {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .cards-grid-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Dispositivos Móveis e Smartphones */
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .cards-grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cards-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .page-header .btn {
+    width: 100%;
+  }
+
+  .top-header {
+    height: auto;
+    padding: var(--space-3) var(--space-4);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .header-left {
+    flex: 1;
+  }
+
+  .header-right {
+    gap: var(--space-2);
+  }
+
+  .month-selector {
+    padding: 0.15rem 0.35rem;
+  }
+
+  .current-month-display {
+    min-width: 100px;
+    font-size: var(--font-size-xs);
+  }
+
+  .greeting-title {
+    font-size: var(--font-size-base);
+  }
+
+  .greeting-subtitle {
+    display: none;
+  }
+
+  .modal-dialog {
+    margin: var(--space-2);
+    max-height: 85vh;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-canvas-container {
+    height: 240px;
+  }
+
+  .transaction-item {
+    padding: var(--space-3) 0;
+  }
+
+  .tx-amount {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* Smartphones Pequenos */
+@media (max-width: 480px) {
+  .metric-value {
+    font-size: var(--font-size-xl);
+  }
+
+  .chart-filters {
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .chart-filter-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 11px;
+  }
+
+  .toast-container {
+    left: var(--space-4);
+    right: var(--space-4);
+    bottom: var(--space-4);
+    max-width: none;
+  }
+}
