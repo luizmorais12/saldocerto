@@ -7,9 +7,8 @@
  * NUNCA insira service_role, secret keys ou credenciais administrativas no frontend.
  */
 
-// Permite obter credenciais via localStorage (configurações do app), variáveis globais ou constantes padrão
-const DEFAULT_SUPABASE_URL = 'https://seu-projeto.supabase.co';
-const DEFAULT_SUPABASE_ANON_KEY = 'sua-chave-anon-publica-aqui';
+const DEFAULT_SUPABASE_URL = 'https://ersospbpdwniuoppvunq.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyc29zcGJwZHduaXVvcHB2dW5xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNzY2NTAsImV4cCI6MjEwNTg1MjY1MH0.ftOl4ptLrrA1NcgqzWxKuCpA4rW99ejjw3em7t20M6w';
 
 // Carrega de localStorage caso o usuário tenha configurado via tela de configurações, ou usa padrões
 const storedUrl = typeof localStorage !== 'undefined' ? localStorage.getItem('saldocerto_supabase_url') : null;
