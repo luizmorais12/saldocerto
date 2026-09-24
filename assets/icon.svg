@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <defs>
+    <linearGradient id="sc-pwa-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22C55E"/>
+      <stop offset="100%" stop-color="#15803D"/>
+    </linearGradient>
+    <filter id="sc-pwa-shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#15803D" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded card -->
+  <rect width="512" height="512" rx="112" fill="url(#sc-pwa-grad)"/>
+
+  <!-- Icon Graphic centered -->
+  <g transform="translate(64, 64)" filter="url(#sc-pwa-shadow)">
+    <!-- Upward Trend Chart -->
+    <path d="M96 260 L170 190 L230 240 L300 130" stroke="#FFFFFF" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M240 130 H300 V190" stroke="#FFFFFF" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Accent Currency Dot / Spark -->
+    <circle cx="120" cy="140" r="24" fill="#DCFCE7"/>
+  </g>
+</svg>

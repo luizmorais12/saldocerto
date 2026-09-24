@@ -1052,9 +1052,16 @@ const SaldoCerto = (() => {
   // --- Registro do PWA Service Worker ---
   const initPWA = () => {
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-      navigator.serviceWorker.register('sw.js').catch(err => {
-        console.log('PWA Service Worker offline/fallback:', err);
-      });
+      navigator.serviceWorker.register('service-worker.js')
+        .then((reg) => {
+          console.log('[PWA] Service Worker registrado com sucesso:', reg.scope);
+        })
+        .catch(() => {
+          return navigator.serviceWorker.register('sw.js');
+        })
+        .catch((err) => {
+          console.log('PWA Service Worker offline/fallback:', err);
+        });
     }
   };
 
