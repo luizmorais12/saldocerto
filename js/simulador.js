@@ -1,9 +1,19 @@
 /**
- * SaldoCerto - Simulador de Juros Compostos & Independência Financeira
+ * SaldoCerto - Simulador de Juros Compostos & Rumo ao Primeiro Milhão
+ * Projeções matemáticas em tempo real, marcos de patrimônio e renda passiva.
  */
 
 const SimuladorModule = (() => {
   let simChart = null;
+
+  const formatDuration = (months) => {
+    if (!months) return 'Aumente o aporte';
+    const y = Math.floor(months / 12);
+    const m = months % 12;
+    if (y === 0) return `${m} ${m === 1 ? 'mês' : 'meses'}`;
+    if (m === 0) return `${y} ${y === 1 ? 'ano' : 'anos'}`;
+    return `${y} a e ${m} m`;
+  };
 
   const calculateSimulation = () => {
     const P = parseFloat(document.getElementById('rangeInitial').value) || 0;
@@ -23,7 +33,6 @@ const SimuladorModule = (() => {
 
     let currentBalance = P;
     let totalInvested = P;
-    let monthsToMillion = null;
 
     const yearlyData = [];
 
@@ -31,10 +40,6 @@ const SimuladorModule = (() => {
       const interestEarned = currentBalance * monthlyRate;
       currentBalance += interestEarned + PMT;
       totalInvested += PMT;
-
-      if (!monthsToMillion && currentBalance >= 1000000) {
-        monthsToMillion = m;
-      }
 
       if (m % 12 === 0) {
         const yearNum = m / 12;
@@ -44,7 +49,7 @@ const SimuladorModule = (() => {
           totalInvested: totalInvested,
           balance: currentBalance,
           interest: totalInterest,
-          passiveIncome: currentBalance * 0.005 // 0.5% ao mês seguro
+          passiveIncome: currentBalance * 0.005
         });
       }
     }
@@ -59,14 +64,44 @@ const SimuladorModule = (() => {
     document.getElementById('statSimInterestTotal').textContent = `+ ${SaldoCerto.formatCurrency(finalInterest)}`;
     document.getElementById('statSimPassiveIncome').textContent = `${SaldoCerto.formatCurrency(finalPassive)} / mês`;
 
-    // Tempo até o milhão
-    const millionEl = document.getElementById('timeToMillionText');
-    if (monthsToMillion) {
-      const y = Math.floor(monthsToMillion / 12);
-      const m = monthsToMillion % 12;
-      millionEl.textContent = `🎯 Você atinge R$ 1.000.000 em aprox. ${y} anos e ${m} meses!`;
-    } else {
-      millionEl.textContent = `Continue os aportes! Em ${years} anos seu patrimônio será ${SaldoCerto.formatCurrency(finalBalance)}.`;
+    // Cálculo dos Marcos Rumo ao Primeiro Milhão (até 600 meses)
+    let bSim = P;
+    let m100 = null, m250 = null, m500 = null, m1000 = null;
+
+    if (bSim >= 100000) m100 = 0;
+    if (bSim >= 250000) m250 = 0;
+    if (bSim >= 500000) m500 = 0;
+    if (bSim >= 1000000) m1000 = 0;
+
+    for (let m = 1; m <= 600; m++) {
+      bSim += (bSim * monthlyRate) + PMT;
+      if (m100 === null && bSim >= 100000) m100 = m;
+      if (m250 === null && bSim >= 250000) m250 = m;
+      if (m500 === null && bSim >= 500000) m500 = m;
+      if (m1000 === null && bSim >= 1000000) m1000 = m;
+      if (m1000 !== null) break;
+    }
+
+    const el100 = document.getElementById('timeTo100k');
+    if (el100) el100.textContent = m100 === 0 ? 'Já alcançado! 🎉' : `Aprox. ${formatDuration(m100)}`;
+    const el250 = document.getElementById('timeTo250k');
+    if (el250) el250.textContent = m250 === 0 ? 'Já alcançado! 🎉' : `Aprox. ${formatDuration(m250)}`;
+    const el500 = document.getElementById('timeTo500k');
+    if (el500) el500.textContent = m500 === 0 ? 'Já alcançado! 🎉' : `Aprox. ${formatDuration(m500)}`;
+    const el1M = document.getElementById('timeTo1M');
+    if (el1M) el1M.textContent = m1000 === 0 ? 'Já alcançado! 🏆' : `Aprox. ${formatDuration(m1000)}`;
+
+    const millionText = document.getElementById('timeToMillionText');
+    if (millionText) {
+      if (m1000 === 0) {
+        millionText.textContent = 'Parabéns! Você já possui mais de R$ 1 Milhão.';
+      } else if (m1000) {
+        const y = Math.floor(m1000 / 12);
+        const m = m1000 % 12;
+        millionText.textContent = `🎯 Você atinge R$ 1.000.000 em aprox. ${y} anos e ${m} meses!`;
+      } else {
+        millionText.textContent = `Continue os aportes! Em ${years} anos seu patrimônio será ${SaldoCerto.formatCurrency(finalBalance)}.`;
+      }
     }
 
     renderChart(yearlyData);
@@ -162,8 +197,15 @@ const SimuladorModule = (() => {
     `).join('');
   };
 
-  const init = () => {
+  const init = async () => {
     SaldoCerto.initShell('simulador');
+    if (window.SaldoCertoAuth) {
+      await SaldoCertoAuth.requireAuth();
+    }
+    if (window.SaldoCertoProfile) {
+      await SaldoCertoProfile.syncUserProfileUI();
+    }
+
     calculateSimulation();
 
     ['rangeInitial', 'rangeMonthly', 'rangeRate', 'rangeYears'].forEach(id => {
