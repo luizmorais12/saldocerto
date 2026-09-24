@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurações — SaldoCerto | Gestão Financeira Pessoal</title>
+  <meta name="description" content="Personalize seu perfil, preferências do sistema, tema claro/escuro e faça backup dos seus dados.">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    .settings-nav {
+      display: flex;
+      gap: var(--space-2);
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: var(--space-6);
+      overflow-x: auto;
+    }
+    .settings-tab {
+      padding: var(--space-3) var(--space-5);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+    .settings-tab:hover {
+      color: var(--color-primary);
+    }
+    .settings-tab.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+    }
+    .theme-card-picker {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-4);
+      margin-top: var(--space-2);
+    }
+    .theme-option {
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      transition: all var(--transition-fast);
+      background: var(--color-card);
+    }
+    .theme-option.active {
+      border-color: var(--color-primary);
+      background-color: var(--color-primary-light);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-container">
+
+    <!-- Sidebar Principal -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <img src="assets/logo.svg" alt="SaldoCerto Logo">
+        </a>
+      </div>
+
+      <div class="sidebar-content">
+        <span class="sidebar-section-title">Principal</span>
+        <nav class="nav-menu">
+          <a href="dashboard.html" class="nav-item" data-page="dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Movimentações</span>
+        <nav class="nav-menu">
+          <a href="receitas.html" class="nav-item" data-page="receitas">
+            <i data-lucide="arrow-down-circle"></i>
+            <span>Receitas</span>
+          </a>
+          <a href="despesas.html" class="nav-item" data-page="despesas">
+            <i data-lucide="arrow-up-circle"></i>
+            <span>Despesas</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Financeiro</span>
+        <nav class="nav-menu">
+          <a href="contas.html" class="nav-item" data-page="contas">
+            <i data-lucide="landmark"></i>
+            <span>Contas</span>
+          </a>
+          <a href="cartoes.html" class="nav-item" data-page="cartoes">
+            <i data-lucide="credit-card"></i>
+            <span>Cartões</span>
+          </a>
+          <a href="investimentos.html" class="nav-item" data-page="investimentos">
+            <i data-lucide="trending-up"></i>
+            <span>Investimentos</span>
+          </a>
+          <a href="patrimonio.html" class="nav-item" data-page="patrimonio">
+            <i data-lucide="pie-chart"></i>
+            <span>Patrimônio</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Planejamento</span>
+        <nav class="nav-menu">
+          <a href="metas.html" class="nav-item" data-page="metas">
+            <i data-lucide="target"></i>
+            <span>Metas</span>
+          </a>
+          <a href="relatorios.html" class="nav-item" data-page="relatorios">
+            <i data-lucide="file-bar-chart"></i>
+            <span>Relatórios</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Sistema</span>
+        <nav class="nav-menu">
+          <a href="configuracoes.html" class="nav-item active" data-page="configuracoes">
+            <i data-lucide="settings"></i>
+            <span>Configurações</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar" id="sidebarAvatar">LZ</div>
+          <div class="user-info">
+            <div class="user-name" id="sidebarUserName">Luiz Morais</div>
+            <div class="user-role">Minha Conta</div>
+          </div>
+          <a href="index.html" title="Sair do aplicativo" style="color: var(--color-text-muted); padding: 4px;">
+            <i data-lucide="log-out"></i>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Área Principal -->
+    <div class="main-wrapper">
+
+      <!-- Header Superior -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-toggle" aria-label="Abrir menu de navegação">
+            <i data-lucide="menu"></i>
+          </button>
+          <div class="header-greeting">
+            <div class="greeting-title">
+              Configurações
+            </div>
+            <span class="greeting-subtitle">Ajuste seu perfil, preferências e segurança.</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button class="btn-icon theme-toggle-btn" aria-label="Alternar tema">
+            <i data-lucide="moon"></i>
+          </button>
+
+          <a href="index.html" class="btn btn-outline">
+            <i data-lucide="log-out"></i> Sair
+          </a>
+        </div>
+      </header>
+
+      <!-- Conteúdo da Página -->
+      <main class="content-area">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Configurações do Sistema</h1>
+            <p class="page-desc">Personalize o comportamento do SaldoCerto e gerencie backups.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-6); max-width: 880px;">
+
+          <!-- Card: Perfil -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="user" class="text-primary"></i> Perfil do Usuário
+              </h3>
+            </div>
+            <form onsubmit="ConfiguracoesModule.handleSaveProfile(event)">
+              <div style="display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-6);">
+                <div class="user-avatar" id="profileLargeAvatar" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                  LZ
+                </div>
+                <div>
+                  <h4 style="font-weight: 700; color: var(--color-text);">Foto de Perfil</h4>
+                  <p style="font-size: var(--font-size-xs); color: var(--color-text-muted);">As iniciais são atualizadas automaticamente com base no seu nome.</p>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Nome Completo *</label>
+                  <input type="text" id="settingUserName" class="form-control" value="Luiz Morais" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">E-mail *</label>
+                  <input type="email" id="settingUserEmail" class="form-control" value="luiz@saldocerto.com.br" required>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end;">
+                <button type="submit" class="btn btn-primary">Salvar Perfil</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Card: Aparência (Dark Mode) -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="palette" class="text-primary"></i> Aparência & Tema
+              </h3>
+            </div>
+            <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-3);">
+              Escolha entre o modo claro de alto contraste e o modo escuro para menor cansaço visual à noite.
+            </p>
+
+            <div class="theme-card-picker">
+              <div id="themeLightOption" class="theme-option" onclick="ConfiguracoesModule.setTheme('light')">
+                <i data-lucide="sun" style="color: #F59E0B; width: 28px; height: 28px;"></i>
+                <div>
+                  <strong style="display: block; font-size: var(--font-size-sm); color: var(--color-text);">Modo Claro</strong>
+                  <span style="font-size: 11px; color: var(--color-text-muted);">Fundo limpo e cores vibrantes</span>
+                </div>
+              </div>
+
+              <div id="themeDarkOption" class="theme-option" onclick="ConfiguracoesModule.setTheme('dark')">
+                <i data-lucide="moon" style="color: #6366F1; width: 28px; height: 28px;"></i>
+                <div>
+                  <strong style="display: block; font-size: var(--font-size-sm); color: var(--color-text);">Modo Escuro</strong>
+                  <span style="font-size: 11px; color: var(--color-text-muted);">Tons suaves para ambientes escuros</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card: Preferências Regionais -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="sliders" class="text-primary"></i> Preferências Financeiras
+              </h3>
+            </div>
+            <form onsubmit="ConfiguracoesModule.handleSavePreferences(event)">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Moeda Padrão</label>
+                  <select id="prefCurrency" class="form-select">
+                    <option value="BRL" selected>Real Brasileiro (R$ BRL)</option>
+                    <option value="USD">Dólar Americano ($ USD)</option>
+                    <option value="EUR">Euro (€ EUR)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Primeiro Dia do Mês</label>
+                  <select id="prefFirstDay" class="form-select">
+                    <option value="1" selected>Dia 1º (Padrão)</option>
+                    <option value="5">Dia 5 (Quinto dia útil)</option>
+                    <option value="10">Dia 10</option>
+                    <option value="15">Dia 15</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Formato de Data</label>
+                  <select id="prefDateFormat" class="form-select">
+                    <option value="DD/MM/YYYY" selected>DD/MM/AAAA (Brasil)</option>
+                    <option value="YYYY-MM-DD">AAAA-MM-DD (ISO)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end;">
+                <button type="submit" class="btn btn-secondary">Atualizar Preferências</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Card: Gerenciamento e Backup de Dados -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="database" class="text-primary"></i> Backup & Armazenamento de Dados
+              </h3>
+            </div>
+            <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-4);">
+              Seus dados financeiros residem no navegador através do <code>localStorage</code>. Exporte cópias de segurança ou restaure quando precisar trocar de dispositivo.
+            </p>
+
+            <div style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
+              <button class="btn btn-primary" onclick="ConfiguracoesModule.exportJSON()">
+                <i data-lucide="download"></i> Exportar Dados (Backup JSON)
+              </button>
+
+              <label class="btn btn-secondary" style="margin: 0; cursor: pointer;">
+                <i data-lucide="upload"></i> Importar Dados (JSON)
+                <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="ConfiguracoesModule.importJSON(event)">
+              </label>
+
+              <button class="btn btn-danger" onclick="ConfiguracoesModule.handleClearAllData()">
+                <i data-lucide="alert-triangle"></i> Apagar Todos os Dados
+              </button>
+            </div>
+          </div>
+
+          <!-- Card: Segurança -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="lock" class="text-primary"></i> Segurança da Sessão
+              </h3>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3);">
+              <div>
+                <strong style="color: var(--color-text);">Sessão local ativa</strong>
+                <p style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Encerrar a sessão retornará você para a tela de apresentação.</p>
+              </div>
+              <a href="index.html" class="btn btn-secondary">
+                <i data-lucide="log-out"></i> Sair do Sistema
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/configuracoes.js"></script>
+</body>
+</html>
