@@ -1,0 +1,19 @@
+{
+  "name": "SaldoCerto — Seu dinheiro no controle",
+  "short_name": "SaldoCerto",
+  "description": "Plataforma moderna de gestão financeira pessoal, metas e investimentos.",
+  "start_url": "./dashboard.html",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#16A34A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity", "utilities"]
+}

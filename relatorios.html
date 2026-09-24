@@ -75,6 +75,14 @@
             <i data-lucide="target"></i>
             <span>Metas</span>
           </a>
+          <a href="orcamentos.html" class="nav-item" data-page="orcamentos">
+            <i data-lucide="calculator"></i>
+            <span>Orçamentos</span>
+          </a>
+          <a href="simulador.html" class="nav-item" data-page="simulador">
+            <i data-lucide="sparkles"></i>
+            <span>Simulador</span>
+          </a>
           <a href="relatorios.html" class="nav-item active" data-page="relatorios">
             <i data-lucide="file-bar-chart"></i>
             <span>Relatórios</span>
@@ -83,6 +91,10 @@
 
         <span class="sidebar-section-title">Sistema</span>
         <nav class="nav-menu">
+          <a href="importar.html" class="nav-item" data-page="importar">
+            <i data-lucide="upload"></i>
+            <span>Importar Extrato</span>
+          </a>
           <a href="configuracoes.html" class="nav-item" data-page="configuracoes">
             <i data-lucide="settings"></i>
             <span>Configurações</span>
@@ -126,6 +138,11 @@
             <i data-lucide="moon"></i>
           </button>
 
+          <button class="btn btn-secondary" onclick="window.print()" title="Imprimir ou Salvar como PDF">
+            <i data-lucide="printer"></i>
+            <span class="btn-text">Imprimir / PDF</span>
+          </button>
+
           <button class="btn btn-primary" onclick="RelatoriosModule.exportToCSV()">
             <i data-lucide="download"></i>
             <span class="btn-text">Exportar CSV</span>
@@ -149,6 +166,10 @@
               <button class="chart-filter-btn active" data-period="semester">Semestre</button>
               <button class="chart-filter-btn" data-period="year">Ano</button>
             </div>
+
+            <button class="btn btn-secondary" onclick="window.print()">
+              <i data-lucide="printer"></i> Imprimir / PDF
+            </button>
 
             <button class="btn btn-outline" onclick="RelatoriosModule.exportToCSV()">
               <i data-lucide="file-spreadsheet"></i> Exportar Relatório
