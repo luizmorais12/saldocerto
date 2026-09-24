@@ -259,7 +259,7 @@ const ImportarModule = (() => {
     if (label) label.textContent = selected;
   };
 
-  const confirmImport = () => {
+  const confirmImport = async () => {
     const toImport = parsedTransactions.filter(t => t.selected);
     const accountName = document.getElementById('importTargetAccount').value;
 
@@ -268,6 +268,82 @@ const ImportarModule = (() => {
       return;
     }
 
+    const btn = document.querySelector('button[onclick*="confirmImport"]');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Importando no Supabase...';
+    }
+
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      try {
+        const user = await SaldoCertoAuth.getCurrentUser();
+        if (!user) {
+          SaldoCerto.showToast('Usuário não autenticado.', 'warning');
+          return;
+        }
+
+        const state = SaldoCerto.getState();
+        const acc = (state.accounts || []).find(a => a.name === accountName);
+        const accId = acc ? acc.id : null;
+
+        const records = toImport.map(item => ({
+          user_id: user.id,
+          account_id: accId,
+          type: item.type,
+          description: item.description,
+          amount: parseFloat(item.amount),
+          category: item.category,
+          payment_method: 'Extrato Importado',
+          transaction_date: item.date,
+          notes: 'Importado via extrato bancário OFX/CSV'
+        }));
+
+        const { data, error } = await window.supabaseClient
+          .from('transactions')
+          .insert(records);
+
+        if (error) {
+          console.error('[Importar Supabase] Erro ao inserir transações:', error);
+          SaldoCerto.showToast('Erro ao importar transações no banco.', 'danger');
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="check-circle"></i> Confirmar e Importar Selecionadas';
+          }
+          return;
+        }
+
+        // Atualiza saldo da conta com as transações importadas
+        if (accId && acc) {
+          let netDelta = 0;
+          toImport.forEach(it => {
+            netDelta += it.type === 'income' ? parseFloat(it.amount) : -parseFloat(it.amount);
+          });
+          const newBal = (acc.balance || 0) + netDelta;
+          await window.supabaseClient
+            .from('accounts')
+            .update({ current_balance: newBal })
+            .eq('id', accId)
+            .eq('user_id', user.id);
+          acc.balance = newBal;
+        }
+
+        SaldoCerto.showToast(`🎉 ${toImport.length} transações salvas com sucesso no Supabase!`, 'success');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1200);
+        return;
+      } catch (err) {
+        console.error('[Importar Supabase] Exceção:', err);
+        SaldoCerto.showToast('Falha na comunicação com o banco.', 'danger');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="check-circle"></i> Confirmar e Importar Selecionadas';
+        }
+        return;
+      }
+    }
+
+    // Fallback local
     toImport.forEach(item => {
       SaldoCerto.addTransaction({
         type: item.type,
