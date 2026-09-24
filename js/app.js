@@ -979,30 +979,61 @@ const SaldoCerto = (() => {
     const input = document.getElementById('commandPaletteInput');
     if (input) {
       input.addEventListener('input', (e) => filterCommandPalette(e.target.value));
+      input.addEventListener('keydown', (e) => {
+        const list = window._currentPaletteList || COMMANDS;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          window._paletteIndex = ((window._paletteIndex || 0) + 1) % list.length;
+          highlightPaletteIndex(window._paletteIndex);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          window._paletteIndex = ((window._paletteIndex || 0) - 1 + list.length) % list.length;
+          highlightPaletteIndex(window._paletteIndex);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          executeCommand(window._paletteIndex || 0);
+        }
+      });
     }
   };
 
+  const highlightPaletteIndex = (idx) => {
+    const items = document.querySelectorAll('.command-palette-item');
+    items.forEach((item, i) => {
+      if (i === idx) {
+        item.style.backgroundColor = 'var(--color-bg-subtle)';
+        item.scrollIntoView({ block: 'nearest' });
+      } else {
+        item.style.backgroundColor = 'transparent';
+      }
+    });
+  };
+
   const COMMANDS = [
-    { title: 'Dashboard Geral', icon: 'layout-dashboard', action: () => window.location.href = 'dashboard.html' },
-    { title: 'Receitas & Entradas', icon: 'arrow-down-circle', action: () => window.location.href = 'receitas.html' },
-    { title: 'Despesas & Gastos', icon: 'arrow-up-circle', action: () => window.location.href = 'despesas.html' },
-    { title: 'Contas Bancárias', icon: 'landmark', action: () => window.location.href = 'contas.html' },
-    { title: 'Cartões de Crédito', icon: 'credit-card', action: () => window.location.href = 'cartoes.html' },
-    { title: 'Metas Financeiras', icon: 'target', action: () => window.location.href = 'metas.html' },
-    { title: 'Investimentos', icon: 'trending-up', action: () => window.location.href = 'investimentos.html' },
-    { title: 'Patrimônio Líquido', icon: 'pie-chart', action: () => window.location.href = 'patrimonio.html' },
-    { title: 'Relatórios Financeiros', icon: 'file-bar-chart', action: () => window.location.href = 'relatorios.html' },
+    { title: 'Ir para Dashboard', icon: 'layout-dashboard', action: () => window.location.href = 'dashboard.html' },
+    { title: 'Ir para Receitas', icon: 'arrow-down-circle', action: () => window.location.href = 'receitas.html' },
+    { title: 'Ir para Despesas', icon: 'arrow-up-circle', action: () => window.location.href = 'despesas.html' },
+    { title: 'Ir para Cartões', icon: 'credit-card', action: () => window.location.href = 'cartoes.html' },
+    { title: 'Ir para Contas', icon: 'landmark', action: () => window.location.href = 'contas.html' },
+    { title: 'Ir para Metas', icon: 'target', action: () => window.location.href = 'metas.html' },
+    { title: 'Ir para Investimentos', icon: 'trending-up', action: () => window.location.href = 'investimentos.html' },
+    { title: 'Ir para Patrimônio', icon: 'pie-chart', action: () => window.location.href = 'patrimonio.html' },
+    { title: 'Abrir Relatórios', icon: 'file-bar-chart', action: () => window.location.href = 'relatorios.html' },
     { title: 'Orçamentos & Teto de Gastos (50/30/20)', icon: 'calculator', action: () => window.location.href = 'orcamentos.html' },
-    { title: 'Simulador de Juros Compostos & Rumo ao Milhão', icon: 'sparkles', action: () => window.location.href = 'simulador.html' },
-    { title: 'Importar Extrato Bancário (OFX/CSV)', icon: 'upload', action: () => window.location.href = 'importar.html' },
-    { title: 'Configurações', icon: 'settings', action: () => window.location.href = 'configuracoes.html' },
-    { title: 'Nova Transação...', icon: 'plus-circle', action: () => { closeModal('commandPaletteModal'); openModal('newTransactionModal'); } },
+    { title: 'Simulador de Juros Compostos', icon: 'sparkles', action: () => window.location.href = 'simulador.html' },
+    { title: 'Importar Extrato OFX / CSV', icon: 'upload', action: () => window.location.href = 'importar.html' },
+    { title: 'Nova transação', icon: 'plus-circle', action: () => { closeModal('commandPaletteModal'); openModal('newTransactionModal'); } },
+    { title: 'Nova receita', icon: 'plus', action: () => { closeModal('commandPaletteModal'); window.location.href = 'receitas.html?action=new'; } },
+    { title: 'Nova despesa', icon: 'minus', action: () => { closeModal('commandPaletteModal'); window.location.href = 'despesas.html?action=new'; } },
+    { title: 'Pesquisar movimentação', icon: 'search', action: () => { closeModal('commandPaletteModal'); const s = document.querySelector('input[type="search"], input[placeholder*="Buscar"]'); if (s) s.focus(); else window.location.href = 'dashboard.html#transacoes'; } },
+    { title: 'Abrir configurações', icon: 'settings', action: () => window.location.href = 'configuracoes.html' },
     { title: 'Alternar Modo Privacidade (Olho Mágico)', icon: 'eye', action: () => { closeModal('commandPaletteModal'); togglePrivacy(); } },
     { title: 'Alternar Tema Claro / Escuro', icon: 'moon', action: () => { closeModal('commandPaletteModal'); toggleTheme(); } }
   ];
 
   const openCommandPalette = () => {
     openModal('commandPaletteModal');
+    window._paletteIndex = 0;
     const input = document.getElementById('commandPaletteInput');
     if (input) {
       input.value = '';
@@ -1014,6 +1045,7 @@ const SaldoCerto = (() => {
   const filterCommandPalette = (query) => {
     const q = (query || '').toLowerCase().trim();
     const filtered = COMMANDS.filter(c => c.title.toLowerCase().includes(q));
+    window._paletteIndex = 0;
     renderCommandList(filtered);
   };
 
@@ -1027,8 +1059,8 @@ const SaldoCerto = (() => {
     }
 
     container.innerHTML = list.map((c, i) => `
-      <div class="command-palette-item" style="padding: 10px 14px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background-color var(--transition-fast);"
-           onmouseover="this.style.backgroundColor='var(--color-bg-subtle)'" onmouseout="this.style.backgroundColor='transparent'"
+      <div class="command-palette-item" style="padding: 10px 14px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background-color var(--transition-fast); background-color: ${i === (window._paletteIndex || 0) ? 'var(--color-bg-subtle)' : 'transparent'};"
+           onmouseover="window._paletteIndex = ${i}; this.style.backgroundColor='var(--color-bg-subtle)'" onmouseout="this.style.backgroundColor='transparent'"
            onclick="SaldoCerto.executeCommand(${i})">
         <div style="display: flex; align-items: center; gap: 10px;">
           <i data-lucide="${c.icon}" style="width: 18px; height: 18px; color: var(--color-primary);"></i>
@@ -1045,6 +1077,7 @@ const SaldoCerto = (() => {
   const executeCommand = (index) => {
     const list = window._currentPaletteList || COMMANDS;
     if (list[index] && typeof list[index].action === 'function') {
+      closeModal('commandPaletteModal');
       list[index].action();
     }
   };
