@@ -275,14 +275,14 @@ const DashboardModule = (() => {
 
         // Filtra pelo mês selecionado para métricas de fluxo
         allTransactions.forEach(t => {
-          const tDate = t.transaction_date;
+          const tDate = t.transaction_date || t.date;
           if (tDate >= startDate && tDate < endDate) {
             const amt = Number(t.amount || 0);
             if (t.type === 'income') {
               totalIncome += amt;
             } else if (t.type === 'expense') {
               totalExpenses += amt;
-              const cat = t.category || 'Outros';
+              const cat = (t.category || 'Outros').split('(')[0].trim();
               categoryMap[cat] = (categoryMap[cat] || 0) + amt;
             }
           }
@@ -315,7 +315,7 @@ const DashboardModule = (() => {
           investments: totalInvestments,
           netWorth: netWorth,
           transactions: allTransactions,
-          recentTransactions: allTransactions.slice(0, 6),
+          recentTransactions: allTransactions.slice(0, 8),
           categoryExpenses: categoryMap
         };
 
@@ -327,8 +327,10 @@ const DashboardModule = (() => {
           amount: Number(t.amount || 0),
           category: t.category,
           account: t.account?.name || 'Principal',
-          date: t.transaction_date,
-          paymentMethod: t.payment_method || 'PIX'
+          date: t.transaction_date || t.date,
+          paymentMethod: t.payment_method || t.paymentMethod || 'PIX',
+          recurrence: t.recurrence_type || (t.is_recurring ? 'Mensal' : 'Única'),
+          notes: t.notes || ''
         }));
 
       } catch (err) {
@@ -413,6 +415,22 @@ const DashboardModule = (() => {
       const accName = tx.account?.name || (typeof tx.account === 'string' ? tx.account : 'Principal');
       const dateStr = tx.transaction_date || tx.date;
 
+      const instInfo = SaldoCerto.getInstallmentInfo ? SaldoCerto.getInstallmentInfo(tx) : { isInstallment: false };
+      let underAmountHtml = '';
+      if (instInfo.isInstallment) {
+        underAmountHtml = `
+          <div class="tx-installment-subtext" style="font-size: 10px; font-weight: 600; color: ${isIncome ? '#16A34A' : '#D97706'}; text-align: right; margin-top: 2px;">
+            💳 ${instInfo.summaryText} (Total ${instInfo.totalText})
+          </div>
+        `;
+      }
+
+      const installmentBadge = instInfo.isInstallment 
+        ? `<span class="badge badge-warning" style="font-size: 10px; font-weight: 700; padding: 1px 5px; margin-left: 6px;">${instInfo.badgeText}</span>` 
+        : '';
+
+      const cleanCategory = (tx.category || 'Geral').split('(')[0].trim();
+
       return `
         <div class="transaction-item">
           <div class="tx-left">
@@ -420,9 +438,12 @@ const DashboardModule = (() => {
               <i data-lucide="${iconName}"></i>
             </div>
             <div class="tx-info">
-              <span class="tx-title">${tx.description}</span>
+              <span class="tx-title" style="display: flex; align-items: center; flex-wrap: wrap;">
+                <span>${tx.description}</span>
+                ${installmentBadge}
+              </span>
               <span class="tx-meta">
-                <span>${tx.category || 'Geral'}</span> • 
+                <span>${cleanCategory}</span> • 
                 <span>${SaldoCerto.formatDate(dateStr)}</span> • 
                 <span class="badge badge-info" style="font-size: 11px;">${accName}</span>
               </span>
@@ -430,6 +451,7 @@ const DashboardModule = (() => {
           </div>
           <div class="tx-right">
             <span class="tx-amount ${amountClass}">${sign} ${SaldoCerto.formatCurrency(tx.amount)}</span>
+            ${underAmountHtml}
             <span class="tx-account-badge">${tx.payment_method || tx.paymentMethod || 'PIX'}</span>
           </div>
         </div>

@@ -51,7 +51,7 @@ const SaldoCertoTransactions = (() => {
           return SaldoCerto.getState().transactions;
         }
 
-        // Mapeia para formato do front-end
+        // Mapeia para formato do front-end com compatibilidade total
         const mapped = (data || []).map(t => ({
           id: t.id,
           type: t.type,
@@ -61,8 +61,11 @@ const SaldoCertoTransactions = (() => {
           account: t.account?.name || 'Conta Padrão',
           accountId: t.account_id,
           date: t.transaction_date,
+          transaction_date: t.transaction_date,
           paymentMethod: t.payment_method || 'PIX',
+          payment_method: t.payment_method || 'PIX',
           recurrence: t.recurrence_type || (t.is_recurring ? 'Mensal' : 'Única'),
+          recurrence_type: t.recurrence_type || (t.is_recurring ? 'Mensal' : 'Única'),
           notes: t.notes || ''
         }));
 
@@ -174,8 +177,11 @@ const SaldoCertoTransactions = (() => {
         account: txData.account || 'Conta Padrão',
         accountId: data.account_id,
         date: data.transaction_date,
+        transaction_date: data.transaction_date,
         paymentMethod: data.payment_method,
+        payment_method: data.payment_method,
         recurrence: data.recurrence_type,
+        recurrence_type: data.recurrence_type,
         notes: data.notes
       };
 

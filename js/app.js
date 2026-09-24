@@ -34,25 +34,32 @@ const SaldoCerto = (() => {
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
 
-  // Cores e Ícones padrão para categorias
+  // Cores e Ícones padrão para categorias detalhadas
   const CATEGORIES = {
     expense: [
-      { id: 'moradia', name: 'Moradia', icon: 'home', color: '#6366F1' },
-      { id: 'alimentacao', name: 'Alimentação', icon: 'utensils', color: '#F59E0B' },
-      { id: 'transporte', name: 'Transporte', icon: 'car', color: '#3B82F6' },
-      { id: 'lazer', name: 'Lazer', icon: 'gamepad-2', color: '#EC4899' },
-      { id: 'saude', name: 'Saúde', icon: 'heart-pulse', color: '#EF4444' },
-      { id: 'educacao', name: 'Educação', icon: 'graduation-cap', color: '#8B5CF6' },
-      { id: 'assinaturas', name: 'Assinaturas', icon: 'tv', color: '#14B8A6' },
-      { id: 'outros', name: 'Outros', icon: 'more-horizontal', color: '#64748B' }
+      { id: 'transporte', name: 'Transporte (Uber, 99, Combustível, Ônibus)', shortName: 'Transporte', icon: 'car', color: '#3B82F6' },
+      { id: 'alimentacao', name: 'Alimentação (Supermercado, Feira, Padaria)', shortName: 'Alimentação', icon: 'shopping-cart', color: '#F59E0B' },
+      { id: 'delivery', name: 'Restaurantes & Delivery (iFood, Jantar, Lanches)', shortName: 'Restaurantes & iFood', icon: 'utensils', color: '#EF4444' },
+      { id: 'moradia', name: 'Moradia (Aluguel, Condomínio, IPTU)', shortName: 'Moradia', icon: 'home', color: '#6366F1' },
+      { id: 'contas', name: 'Contas Fixas (Luz, Água, Gás, Internet Fibra)', shortName: 'Contas Fixas', icon: 'zap', color: '#0EA5E9' },
+      { id: 'lazer', name: 'Lazer & Passeios (Cinema, Viagens, Shows)', shortName: 'Lazer', icon: 'gamepad-2', color: '#EC4899' },
+      { id: 'assinaturas', name: 'Assinaturas & Streaming (Netflix, Spotify, Prime)', shortName: 'Assinaturas', icon: 'tv', color: '#14B8A6' },
+      { id: 'saude', name: 'Saúde & Farmácia (Remédios, Consultas, Exames)', shortName: 'Saúde & Farmácia', icon: 'heart-pulse', color: '#DC2626' },
+      { id: 'educacao', name: 'Educação & Cursos (Faculdade, Cursos, Livros)', shortName: 'Educação', icon: 'graduation-cap', color: '#8B5CF6' },
+      { id: 'compras', name: 'Compras & Vestuário (Roupas, Calçados, Eletrônicos)', shortName: 'Compras & Vestuário', icon: 'shopping-bag', color: '#F97316' },
+      { id: 'veiculo', name: 'Veículo (Seguro, IPVA, Manutenção, Lavagem)', shortName: 'Veículo', icon: 'wrench', color: '#64748B' },
+      { id: 'cuidados', name: 'Cuidados Pessoais (Barbearia, Academia, Salão)', shortName: 'Cuidados Pessoais', icon: 'smile', color: '#10B981' },
+      { id: 'outros', name: 'Outros Gastos Diversos', shortName: 'Outros', icon: 'more-horizontal', color: '#94A3B8' }
     ],
     income: [
-      { id: 'salario', name: 'Salário', icon: 'briefcase', color: '#16A34A' },
-      { id: 'freelance', name: 'Freelance', icon: 'laptop', color: '#059669' },
-      { id: 'beneficios', name: 'Benefícios', icon: 'gift', color: '#10B981' },
-      { id: 'investimentos', name: 'Investimentos', icon: 'trending-up', color: '#0EA5E9' },
-      { id: 'vendas', name: 'Vendas', icon: 'shopping-bag', color: '#84CC16' },
-      { id: 'outros', name: 'Outros', icon: 'plus-circle', color: '#64748B' }
+      { id: 'salario', name: 'Salário Principal (CLT / Concurso / Pró-labore)', shortName: 'Salário', icon: 'briefcase', color: '#16A34A' },
+      { id: 'freelance', name: 'Freelance & Bicos (Projetos extras, Consultoria)', shortName: 'Freelance', icon: 'laptop', color: '#059669' },
+      { id: 'investimentos', name: 'Investimentos & Dividendos (FIIs, Ações, Renda Fixa)', shortName: 'Investimentos', icon: 'trending-up', color: '#0EA5E9' },
+      { id: 'vendas', name: 'Vendas & Negócios (Comércio, Desapegos)', shortName: 'Vendas', icon: 'shopping-bag', color: '#84CC16' },
+      { id: 'beneficios', name: 'Benefícios (VR, VA, Auxílios corporativos)', shortName: 'Benefícios', icon: 'gift', color: '#10B981' },
+      { id: 'reembolso', name: 'Reembolso & Devoluções', shortName: 'Reembolso', icon: 'rotate-ccw', color: '#06B6D4' },
+      { id: 'pix', name: 'PIX Recebido & Transferências Bancárias', shortName: 'PIX Recebido', icon: 'arrow-down-left', color: '#3B82F6' },
+      { id: 'outros', name: 'Outras Receitas Diversas', shortName: 'Outras Receitas', icon: 'plus-circle', color: '#64748B' }
     ]
   };
 
@@ -322,14 +329,15 @@ const SaldoCerto = (() => {
   // --- Cálculos Financeiros Dinâmicos ---
   const getTransactionsForSelectedPeriod = () => {
     return state.transactions.filter(t => {
-      if (!t.date) return false;
-      const parts = t.date.split('-');
+      const dateStr = t.date || t.transaction_date;
+      if (!dateStr) return false;
+      const parts = dateStr.split('-');
       if (parts.length === 3) {
         const y = parseInt(parts[0], 10);
         const m = parseInt(parts[1], 10) - 1; // 0-indexed
         return y === state.selectedYear && m === state.selectedMonth;
       }
-      const d = new Date(t.date + 'T00:00:00');
+      const d = new Date(dateStr + 'T00:00:00');
       return d.getFullYear() === state.selectedYear && d.getMonth() === state.selectedMonth;
     });
   };
@@ -1104,6 +1112,32 @@ const SaldoCerto = (() => {
   };
 
   // --- Modal Global de Nova Transação ---
+  const QUICK_SUGGESTIONS = {
+    expense: [
+      { label: '🚗 Uber', desc: 'Uber Viagem', cat: 'Transporte (Uber, 99, Combustível, Ônibus)' },
+      { label: '🍔 iFood', desc: 'iFood Pedido', cat: 'Restaurantes & Delivery (iFood, Jantar, Lanches)' },
+      { label: '🛒 Supermercado', desc: 'Supermercado Mensal', cat: 'Alimentação (Supermercado, Feira, Padaria)' },
+      { label: '⛽ Gasolina', desc: 'Abastecimento / Posto', cat: 'Transporte (Uber, 99, Combustível, Ônibus)' },
+      { label: '🏠 Aluguel', desc: 'Aluguel do Mês', cat: 'Moradia (Aluguel, Condomínio, IPTU)' },
+      { label: '⚡ Conta de Luz', desc: 'Energia Elétrica (Luz)', cat: 'Contas Fixas (Luz, Água, Gás, Internet Fibra)' },
+      { label: '💧 Conta de Água', desc: 'Água e Saneamento', cat: 'Contas Fixas (Luz, Água, Gás, Internet Fibra)' },
+      { label: '📶 Internet Fibra', desc: 'Internet Residencial', cat: 'Contas Fixas (Luz, Água, Gás, Internet Fibra)' },
+      { label: '💊 Farmácia', desc: 'Farmácia e Medicamentos', cat: 'Saúde & Farmácia (Remédios, Consultas, Exames)' },
+      { label: '🎬 Netflix / Streaming', desc: 'Assinatura Streaming', cat: 'Assinaturas & Streaming (Netflix, Spotify, Prime)' },
+      { label: '🏋️ Academia', desc: 'Mensalidade da Academia', cat: 'Cuidados Pessoais (Barbearia, Academia, Salão)' },
+      { label: '☕ Padaria / Lanche', desc: 'Padaria e Lanche', cat: 'Alimentação (Supermercado, Feira, Padaria)' }
+    ],
+    income: [
+      { label: '💼 Salário CLT', desc: 'Salário Mensal', cat: 'Salário Principal (CLT / Concurso / Pró-labore)' },
+      { label: '💻 Freelance', desc: 'Projeto Freelance', cat: 'Freelance & Bicos (Projetos extras, Consultoria)' },
+      { label: '📈 Dividendos / FIIs', desc: 'Rendimentos e Dividendos', cat: 'Investimentos & Dividendos (FIIs, Ações, Renda Fixa)' },
+      { label: '🛍️ Venda de Produto', desc: 'Venda de Item / Produto', cat: 'Vendas & Negócios (Comércio, Desapegos)' },
+      { label: '🔄 Reembolso', desc: 'Reembolso de Despesas', cat: 'Reembolso & Devoluções' },
+      { label: '📱 PIX Recebido', desc: 'Transferência PIX Recebida', cat: 'PIX Recebido & Transferências Bancárias' },
+      { label: '🎁 Bônus / Gratificação', desc: 'Premiação / Bônus Extra', cat: 'Salário Principal (CLT / Concurso / Pró-labore)' }
+    ]
+  };
+
   const initTransactionModal = () => {
     if (document.getElementById('newTransactionModal')) return;
 
@@ -1121,7 +1155,7 @@ const SaldoCerto = (() => {
           <form id="globalTransactionForm" onsubmit="SaldoCerto.handleSaveTransaction(event)">
             <div class="modal-body">
               <!-- Seletor de Tipo (Receita vs Despesa) -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-4);">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-3);">
                 <button type="button" id="txTypeExpenseBtn" class="btn btn-secondary active-type" style="border: 2px solid var(--color-danger); color: var(--color-danger); font-weight: 700;" onclick="SaldoCerto.setModalTxType('expense')">
                   <i data-lucide="arrow-down-circle"></i> Despesa
                 </button>
@@ -1132,9 +1166,20 @@ const SaldoCerto = (() => {
 
               <input type="hidden" id="modalTxType" value="expense">
 
+              <!-- Atalhos rápidos de gastos comuns (Uber, iFood, Mercado, etc) -->
+              <div class="form-group" style="margin-bottom: var(--space-3);">
+                <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span style="font-weight: 600; font-size: 12px;">Sugestões Rápidas:</span>
+                  <span style="font-size: 11px; color: var(--color-text-muted);">Clique para auto-preencher</span>
+                </label>
+                <div id="modalQuickChips" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <!-- Preenchido dinamicamente via renderQuickChips -->
+                </div>
+              </div>
+
               <div class="form-group">
                 <label class="form-label">Descrição *</label>
-                <input type="text" id="modalTxDesc" class="form-control" placeholder="Ex: Supermercado, Salário, Uber..." required>
+                <input type="text" id="modalTxDesc" class="form-control" placeholder="Ex: Corrida Uber, iFood, Supermercado..." required>
               </div>
 
               <div class="form-row">
@@ -1142,10 +1187,11 @@ const SaldoCerto = (() => {
                   <label class="form-label">Valor (R$) *</label>
                   <input type="number" step="0.01" min="0.01" id="modalTxAmount" class="form-control" placeholder="0,00" required oninput="SaldoCerto.updateInstallmentCalc()">
                   <div style="display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 5px;" onclick="SaldoCerto.adjustTxAmount(50)">+50</button>
-                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 5px;" onclick="SaldoCerto.adjustTxAmount(100)">+100</button>
-                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 5px;" onclick="SaldoCerto.adjustTxAmount(200)">+200</button>
-                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 5px;" onclick="SaldoCerto.adjustTxAmount(500)">+500</button>
+                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 6px;" onclick="SaldoCerto.adjustTxAmount(20)">+20</button>
+                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 6px;" onclick="SaldoCerto.adjustTxAmount(50)">+50</button>
+                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 6px;" onclick="SaldoCerto.adjustTxAmount(100)">+100</button>
+                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 6px;" onclick="SaldoCerto.adjustTxAmount(200)">+200</button>
+                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 6px;" onclick="SaldoCerto.adjustTxAmount(500)">+500</button>
                   </div>
                 </div>
                 <div class="form-group">
@@ -1158,11 +1204,11 @@ const SaldoCerto = (() => {
                 <div class="form-group">
                   <label class="form-label">Categoria *</label>
                   <select id="modalTxCategory" class="form-select" required>
-                    <!-- Preenchido dinamicamente de acordo com o tipo -->
+                    <!-- Preenchido dinamicamente com categorias super detalhadas -->
                   </select>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Conta Bancária *</label>
+                  <label class="form-label">Conta Bancária / Carteira *</label>
                   <select id="modalTxAccount" class="form-select" required>
                     <!-- Preenchido dinamicamente das contas cadastradas -->
                   </select>
@@ -1185,23 +1231,27 @@ const SaldoCerto = (() => {
                   <label class="form-label">Recorrência</label>
                   <select id="modalTxRecurrence" class="form-select" onchange="SaldoCerto.checkInstallmentTrigger()">
                     <option value="Única">Única</option>
-                    <option value="Mensal">Fixa / Mensal</option>
-                    <option value="Parcelada">Parcelada</option>
+                    <option value="Parcelada">Parcelada (Financiado / Cartão)</option>
+                    <option value="Mensal">Fixa Mensal (Todo mês)</option>
                   </select>
                 </div>
               </div>
 
-              <!-- Caixa de Parcelamento de Despesa -->
-              <div id="modalTxInstallmentsBox" style="display: none; background: var(--color-bg-subtle); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-bottom: var(--space-3);">
-                <div class="form-row" style="margin-bottom: 0;">
+              <!-- Caixa de Parcelamento de Despesa / Receita com Cálculo Imediato -->
+              <div id="modalTxInstallmentsBox" style="display: none; background: var(--color-bg-subtle); padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-bottom: var(--space-3);">
+                <div style="font-size: 12px; font-weight: 700; color: var(--color-text); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="layers" style="width: 14px; height: 14px; color: var(--color-primary);"></i>
+                  Condições do Parcelamento
+                </div>
+                
+                <div class="form-row" style="margin-bottom: var(--space-3);">
                   <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label" style="font-size: var(--font-size-xs);">Número de Parcelas</label>
                     <select id="modalTxInstallments" class="form-select" onchange="SaldoCerto.updateInstallmentCalc()">
-                      <option value="1">1x (À vista)</option>
                       <option value="2">2x</option>
                       <option value="3">3x</option>
                       <option value="4">4x</option>
-                      <option value="5">5x</option>
+                      <option value="5" selected>5x</option>
                       <option value="6">6x</option>
                       <option value="8">8x</option>
                       <option value="10">10x</option>
@@ -1209,25 +1259,35 @@ const SaldoCerto = (() => {
                       <option value="18">18x</option>
                       <option value="24">24x</option>
                       <option value="36">36x</option>
+                      <option value="48">48x</option>
                     </select>
                   </div>
-                  <div class="form-group" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: flex-end;">
-                    <div id="modalTxInstallmentCalcText" style="font-size: 11px; color: var(--color-primary); font-weight: 700; padding-bottom: 8px;">
-                      Total à vista
-                    </div>
+                  
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: var(--font-size-xs);">O valor digitado (R$) é:</label>
+                    <select id="modalTxInstallmentType" class="form-select" onchange="SaldoCerto.updateInstallmentCalc()">
+                      <option value="total" selected>Valor Total da Compra (a ser dividido)</option>
+                      <option value="installment">Valor de Cada Parcela Mensal</option>
+                    </select>
                   </div>
+                </div>
+
+                <!-- Banner Informativo com os valores calculados -->
+                <div id="modalTxInstallmentCalcBanner" style="padding: 10px 12px; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: var(--radius-sm); font-size: 12px; color: var(--color-text);">
+                  <div style="font-weight: 700; color: var(--color-primary); margin-bottom: 2px;" id="modalTxInstallmentPlanTitle">5x de R$ 52,00 por mês</div>
+                  <div style="font-size: 11px; color: var(--color-text-muted);" id="modalTxInstallmentPlanSub">Impacto no mês atual: R$ 52,00 • Valor Total da Compra: R$ 260,00</div>
                 </div>
               </div>
 
               <div class="form-group">
-                <label class="form-label">Observações</label>
-                <textarea id="modalTxNotes" class="form-control" rows="2" placeholder="Opcional. Ex: Restaurante com amigos..."></textarea>
+                <label class="form-label">Observações / Detalhes</label>
+                <textarea id="modalTxNotes" class="form-control" rows="2" placeholder="Opcional. Ex: Dividido com amigos, garantia estendida, etc."></textarea>
               </div>
             </div>
 
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" onclick="SaldoCerto.closeModal('newTransactionModal')">Cancelar</button>
-              <button type="submit" class="btn btn-primary">
+              <button type="submit" class="btn btn-primary" id="btnSubmitTx">
                 <i data-lucide="check"></i> Salvar Transação
               </button>
             </div>
@@ -1238,6 +1298,35 @@ const SaldoCerto = (() => {
 
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     populateModalFormFields();
+  };
+
+  const applyQuickChip = (desc, cat) => {
+    const descInput = document.getElementById('modalTxDesc');
+    const catSelect = document.getElementById('modalTxCategory');
+    const amountInput = document.getElementById('modalTxAmount');
+    if (descInput) descInput.value = desc;
+    if (catSelect) {
+      for (let i = 0; i < catSelect.options.length; i++) {
+        if (catSelect.options[i].value === cat || catSelect.options[i].text.startsWith(cat.split(' ')[0])) {
+          catSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    if (amountInput) amountInput.focus();
+  };
+
+  const renderQuickChips = (type) => {
+    const container = document.getElementById('modalQuickChips');
+    if (!container) return;
+    const chips = QUICK_SUGGESTIONS[type] || QUICK_SUGGESTIONS.expense;
+    container.innerHTML = chips.map(c => `
+      <button type="button" class="btn btn-outline btn-sm quick-chip-btn" 
+              style="font-size: 11px; padding: 2px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; border-color: var(--color-border);"
+              onclick="SaldoCerto.applyQuickChip('${c.desc}', '${c.cat}')">
+        ${c.label}
+      </button>
+    `).join('');
   };
 
   const setModalTxType = (type) => {
@@ -1261,6 +1350,8 @@ const SaldoCerto = (() => {
     }
 
     populateCategoriesSelect(type);
+    renderQuickChips(type);
+    updateInstallmentCalc();
   };
 
   const populateCategoriesSelect = (type) => {
@@ -1276,14 +1367,17 @@ const SaldoCerto = (() => {
     const dateInput = document.getElementById('modalTxDate');
     if (dateInput) dateInput.value = today;
 
-    // Popula categorias
+    // Popula categorias e chips
     populateCategoriesSelect('expense');
+    renderQuickChips('expense');
 
     // Popula contas
     const accSelect = document.getElementById('modalTxAccount');
     if (accSelect) {
       accSelect.innerHTML = state.accounts.map(a => `<option value="${a.name}">${a.name} (${formatCurrency(a.balance)})</option>`).join('');
     }
+
+    updateInstallmentCalc();
   };
 
   const adjustTxAmount = (delta) => {
@@ -1311,92 +1405,193 @@ const SaldoCerto = (() => {
   const updateInstallmentCalc = () => {
     const amount = parseFloat(document.getElementById('modalTxAmount')?.value) || 0;
     const inst = parseInt(document.getElementById('modalTxInstallments')?.value || '1', 10);
-    const textEl = document.getElementById('modalTxInstallmentCalcText');
-    if (textEl) {
+    const instType = document.getElementById('modalTxInstallmentType')?.value || 'total';
+    const planTitle = document.getElementById('modalTxInstallmentPlanTitle');
+    const planSub = document.getElementById('modalTxInstallmentPlanSub');
+
+    let perInst = 0;
+    let totalAmt = 0;
+
+    if (instType === 'total') {
+      totalAmt = amount;
+      perInst = inst > 0 ? (amount / inst) : amount;
+    } else {
+      perInst = amount;
+      totalAmt = amount * inst;
+    }
+
+    if (planTitle && planSub) {
       if (inst > 1 && amount > 0) {
-        const perInst = amount / inst;
-        textEl.textContent = `${inst}x de ${formatCurrency(perInst)}`;
+        planTitle.textContent = `${inst}x de ${formatCurrency(perInst)} por mês`;
+        planSub.textContent = `Impacto no mês atual: ${formatCurrency(perInst)} • Valor Total financiado: ${formatCurrency(totalAmt)}`;
       } else if (amount > 0) {
-        textEl.textContent = `Total: ${formatCurrency(amount)} (à vista)`;
+        planTitle.textContent = `1x de ${formatCurrency(amount)} (À vista)`;
+        planSub.textContent = `Impacto no mês atual: ${formatCurrency(amount)} • Total: ${formatCurrency(amount)}`;
       } else {
-        textEl.textContent = '1x de R$ 0,00';
+        planTitle.textContent = 'Informe o valor para simular as parcelas';
+        planSub.textContent = 'O cálculo do valor mensal e total aparecerá aqui automaticamente.';
       }
     }
+  };
+
+  /**
+   * Helper unificado para extrair informações ricas de parcelamento de uma transação
+   */
+  const getInstallmentInfo = (tx) => {
+    if (!tx) return { isInstallment: false };
+
+    const notes = tx.notes || '';
+    const desc = tx.description || '';
+    const recurrence = tx.recurrence || tx.recurrence_type || '';
+    const isParcelada = recurrence === 'Parcelada' || notes.toLowerCase().includes('parcelad') || /\(\d+\/\d+\)/.test(desc);
+
+    if (!isParcelada) {
+      return { isInstallment: false };
+    }
+
+    // Padrão estruturado moderno: [PARCELADO X/Y: Yx de R$ Z | Total: R$ W]
+    const structuredMatch = notes.match(/\[PARCELADO (\d+)\/(\d+):\s*(\d+)x de ([^|]+)\|\s*Total:\s*([^\]]+)\]/i);
+    if (structuredMatch) {
+      const cur = parseInt(structuredMatch[1], 10);
+      const tot = parseInt(structuredMatch[2], 10);
+      const perText = structuredMatch[4].trim();
+      const totText = structuredMatch[5].trim();
+      return {
+        isInstallment: true,
+        current: cur,
+        total: tot,
+        perText: perText,
+        totalText: totText,
+        summaryText: `${tot}x de ${perText}`,
+        badgeText: `Parcela ${cur}/${tot}`,
+        subtext: `${tot}x de ${perText} • Total: ${totText} (Parcela ${cur}/${tot})`
+      };
+    }
+
+    // Padrão legado: Compra parcelada em Xx de R$ Y
+    const legacyMatch = notes.match(/parcelada em (\d+)x de ([^.]+)/i);
+    if (legacyMatch) {
+      const tot = parseInt(legacyMatch[1], 10);
+      const perText = legacyMatch[2].trim();
+      const descMatch = desc.match(/\((\d+)\/(\d+)\)/);
+      const cur = descMatch ? parseInt(descMatch[1], 10) : 1;
+      const amt = Number(tx.amount || 0);
+      const totText = formatCurrency(amt * (cur === 1 ? tot : 1));
+      return {
+        isInstallment: true,
+        current: cur,
+        total: tot,
+        perText: perText,
+        totalText: totText,
+        summaryText: `${tot}x de ${perText}`,
+        badgeText: `Parcela ${cur}/${tot}`,
+        subtext: `${tot}x de ${perText} • Total: ${totText} (Parcela ${cur}/${tot})`
+      };
+    }
+
+    // Padrão extraído de (X/Y) na descrição
+    const descMatch = desc.match(/\((\d+)\/(\d+)\)/);
+    if (descMatch) {
+      const cur = parseInt(descMatch[1], 10);
+      const tot = parseInt(descMatch[2], 10);
+      const amt = Number(tx.amount || 0);
+      return {
+        isInstallment: true,
+        current: cur,
+        total: tot,
+        perText: formatCurrency(amt),
+        totalText: formatCurrency(amt * tot),
+        summaryText: `${tot}x de ${formatCurrency(amt)}`,
+        badgeText: `Parcela ${cur}/${tot}`,
+        subtext: `${tot}x de ${formatCurrency(amt)} • Total: ${formatCurrency(amt * tot)} (Parcela ${cur}/${tot})`
+      };
+    }
+
+    return {
+      isInstallment: true,
+      current: 1,
+      total: 1,
+      perText: formatCurrency(tx.amount || 0),
+      totalText: formatCurrency(tx.amount || 0),
+      summaryText: 'Parcelado',
+      badgeText: 'Parcelado',
+      subtext: 'Transação Parcelada'
+    };
   };
 
   const handleSaveTransaction = async (e) => {
     e.preventDefault();
     const type = document.getElementById('modalTxType').value;
     let desc = document.getElementById('modalTxDesc').value.trim();
-    const amount = document.getElementById('modalTxAmount').value;
+    const rawAmount = document.getElementById('modalTxAmount').value;
     const date = document.getElementById('modalTxDate').value;
     const category = document.getElementById('modalTxCategory').value;
     const account = document.getElementById('modalTxAccount').value;
     const paymentMethod = document.getElementById('modalTxPaymentMethod').value;
     const recurrence = document.getElementById('modalTxRecurrence').value;
     const installments = parseInt(document.getElementById('modalTxInstallments')?.value || '1', 10);
+    const instType = document.getElementById('modalTxInstallmentType')?.value || 'total';
     let notes = document.getElementById('modalTxNotes').value.trim();
 
-    if (!desc || !amount || Number(amount) <= 0) {
+    if (!desc || !rawAmount || Number(rawAmount) <= 0) {
       showToast('Por favor, informe uma descrição e um valor válido.', 'danger');
       return;
     }
 
-    if (installments > 1) {
+    const inputAmount = parseFloat(rawAmount);
+    let monthlyAmount = inputAmount;
+    let totalFinancedAmount = inputAmount;
+
+    if (installments > 1 || recurrence === 'Parcelada') {
+      if (instType === 'total') {
+        monthlyAmount = inputAmount / (installments > 1 ? installments : 1);
+        totalFinancedAmount = inputAmount;
+      } else {
+        monthlyAmount = inputAmount;
+        totalFinancedAmount = inputAmount * installments;
+      }
+
       if (!desc.includes('(')) {
         desc = `${desc} (1/${installments})`;
       }
-      const perInst = Number(amount) / installments;
-      const noteInst = `Compra parcelada em ${installments}x de ${formatCurrency(perInst)}.`;
-      notes = notes ? `${notes} • ${noteInst}` : noteInst;
+
+      const installmentTag = `[PARCELADO 1/${installments}: ${installments}x de ${formatCurrency(monthlyAmount)} | Total: ${formatCurrency(totalFinancedAmount)}]`;
+      notes = notes ? `${installmentTag} ${notes}` : `${installmentTag} Compra parcelada em ${installments}x.`;
+    } else if (recurrence === 'Mensal') {
+      const recurTag = `[RECORRENTE MENSAL]`;
+      if (!notes.includes('[RECORRENTE MENSAL]')) {
+        notes = notes ? `${recurTag} ${notes}` : `${recurTag} Movimentação fixa mensal.`;
+      }
     }
+
+    const txPayload = {
+      type,
+      description: desc,
+      amount: monthlyAmount,
+      date,
+      category,
+      account,
+      paymentMethod,
+      recurrence: installments > 1 ? 'Parcelada' : recurrence,
+      notes
+    };
 
     if (window.SaldoCertoTransactions && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
       try {
-        await SaldoCertoTransactions.createTransaction({
-          type,
-          description: desc,
-          amount,
-          date,
-          category,
-          account,
-          paymentMethod,
-          recurrence: installments > 1 ? 'Parcelada' : recurrence,
-          notes
-        });
+        await SaldoCertoTransactions.createTransaction(txPayload);
       } catch (err) {
         console.warn('Erro ao salvar transação no Supabase, caindo para local:', err);
-        addTransaction({
-          type,
-          description: desc,
-          amount,
-          date,
-          category,
-          account,
-          paymentMethod,
-          recurrence: installments > 1 ? 'Parcelada' : recurrence,
-          notes
-        });
+        addTransaction(txPayload);
       }
     } else {
-      addTransaction({
-        type,
-        description: desc,
-        amount,
-        date,
-        category,
-        account,
-        paymentMethod,
-        recurrence: installments > 1 ? 'Parcelada' : recurrence,
-        notes
-      });
+      addTransaction(txPayload);
     }
 
     closeModal('newTransactionModal');
     document.getElementById('globalTransactionForm').reset();
     populateModalFormFields();
 
-    // Notifica tela ativa para re-renderizar
+    // Notifica tela ativa para re-renderizar em tempo real
     window.dispatchEvent(new CustomEvent('saldocerto:transactionSaved'));
   };
 
@@ -1416,6 +1611,10 @@ const SaldoCerto = (() => {
     calculateTotalAssets,
     calculateTotalLiabilities,
     getTransactionsForSelectedPeriod,
+    getSelectedMonth: () => state.selectedMonth,
+    getSelectedYear: () => state.selectedYear,
+    setSelectedMonth: (m) => { state.selectedMonth = m; saveData(); updateMonthDisplay(); },
+    setSelectedYear: (y) => { state.selectedYear = y; saveData(); updateMonthDisplay(); },
     addTransaction,
     updateTransaction,
     deleteTransaction,
@@ -1437,6 +1636,8 @@ const SaldoCerto = (() => {
     adjustTxAmount,
     checkInstallmentTrigger,
     updateInstallmentCalc,
+    applyQuickChip,
+    getInstallmentInfo,
     togglePrivacy,
     openNotificationDrawer,
     closeNotificationDrawer,

@@ -17,7 +17,7 @@ const ReceitasModule = (() => {
       incomes = incomes.filter(t => t.description.toLowerCase().includes(search));
     }
     if (catFilter !== 'all') {
-      incomes = incomes.filter(t => t.category === catFilter);
+      incomes = incomes.filter(t => t.category === catFilter || (t.category && t.category.toLowerCase().includes(catFilter.toLowerCase())));
     }
 
     return incomes;
@@ -65,7 +65,8 @@ const ReceitasModule = (() => {
 
     const catMap = {};
     incomes.forEach(t => {
-      catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount || 0);
+      const catName = (t.category || 'Outras').split('(')[0].trim();
+      catMap[catName] = (catMap[catName] || 0) + Number(t.amount || 0);
     });
 
     let labels = Object.keys(catMap);
@@ -141,27 +142,67 @@ const ReceitasModule = (() => {
       return;
     }
 
-    tbody.innerHTML = incomes.map(t => `
-      <tr>
-        <td><strong>${SaldoCerto.formatDate(t.date)}</strong></td>
-        <td>
-          <div style="font-weight: 600;">${t.description}</div>
-          <span style="font-size: 11px; color: var(--color-text-muted);">${t.notes || 'Sem observações'}</span>
-        </td>
-        <td><span class="badge badge-success">${t.category}</span></td>
-        <td><span class="badge badge-info">${t.account || 'Principal'}</span></td>
-        <td style="color: var(--color-success); font-weight: 700; font-size: var(--font-size-base);">
-          + ${SaldoCerto.formatCurrency(t.amount)}
-        </td>
-        <td>
-          <div class="table-actions">
-            <button class="btn-icon" style="width: 32px; height: 32px;" title="Excluir receita" onclick="ReceitasModule.handleDelete('${t.id}')">
-              <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--color-danger);"></i>
-            </button>
+    tbody.innerHTML = incomes.map(t => {
+      const instInfo = SaldoCerto.getInstallmentInfo ? SaldoCerto.getInstallmentInfo(t) : { isInstallment: false };
+      const isInstallment = instInfo.isInstallment;
+      const isRecurring = t.recurrence === 'Mensal' || (t.notes && t.notes.includes('[RECORRENTE MENSAL]'));
+
+      let installmentBadge = '';
+      if (isInstallment) {
+        installmentBadge = `<span class="badge badge-warning" style="font-size: 10px; font-weight: 700; margin-left: 6px;">${instInfo.badgeText}</span>`;
+      } else if (isRecurring) {
+        installmentBadge = `<span class="badge badge-info" style="font-size: 10px; font-weight: 700; margin-left: 6px;">Mensal</span>`;
+      }
+
+      // Detalhes mostrados embaixo do valor
+      let underAmountHtml = '';
+      if (isInstallment) {
+        underAmountHtml = `
+          <div class="tx-installment-subtext" style="font-size: 11px; font-weight: 600; color: #16A34A; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+            <i data-lucide="layers" style="width: 12px; height: 12px;"></i>
+            <span>${instInfo.summaryText} • Total: ${instInfo.totalText}</span>
           </div>
-        </td>
-      </tr>
-    `).join('');
+        `;
+      } else if (isRecurring) {
+        underAmountHtml = `
+          <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
+            <span>🔄 Recorrente todo mês</span>
+          </div>
+        `;
+      }
+
+      const cleanNotes = (t.notes || '').replace(/\[PARCELADO [^\]]+\]/g, '').replace(/\[RECORRENTE MENSAL\]/g, '').trim();
+
+      return `
+        <tr>
+          <td><strong>${SaldoCerto.formatDate(t.date)}</strong></td>
+          <td>
+            <div style="font-weight: 600; display: flex; align-items: center; flex-wrap: wrap;">
+              <span>${t.description}</span>
+              ${installmentBadge}
+            </div>
+            <span style="font-size: 11px; color: var(--color-text-muted); display: block; margin-top: 2px;">
+              ${cleanNotes || (isInstallment ? `${instInfo.summaryText} (Total: ${instInfo.totalText})` : 'Sem observações')}
+            </span>
+          </td>
+          <td><span class="badge badge-success">${t.category}</span></td>
+          <td><span class="badge badge-info">${t.account || 'Principal'}</span></td>
+          <td>
+            <div style="color: var(--color-success); font-weight: 700; font-size: var(--font-size-base);">
+              + ${SaldoCerto.formatCurrency(t.amount)}
+            </div>
+            ${underAmountHtml}
+          </td>
+          <td>
+            <div class="table-actions">
+              <button class="btn-icon" style="width: 32px; height: 32px;" title="Excluir receita" onclick="ReceitasModule.handleDelete('${t.id}')">
+                <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--color-danger);"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
 
     if (window.lucide) window.lucide.createIcons();
   };
@@ -173,7 +214,7 @@ const ReceitasModule = (() => {
       } else {
         SaldoCerto.deleteTransaction(id);
       }
-      refresh();
+      await refresh();
     });
   };
 
@@ -183,6 +224,9 @@ const ReceitasModule = (() => {
   };
 
   const refresh = async () => {
+    if (window.SaldoCertoTransactions && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      await SaldoCertoTransactions.getTransactions();
+    }
     const incomes = getFilteredIncomes();
     renderStats(incomes);
     renderChart(incomes);

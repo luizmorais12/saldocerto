@@ -18,7 +18,7 @@ const DespesasModule = (() => {
       expenses = expenses.filter(t => t.description.toLowerCase().includes(search));
     }
     if (catFilter !== 'all') {
-      expenses = expenses.filter(t => t.category === catFilter);
+      expenses = expenses.filter(t => t.category === catFilter || (t.category && t.category.toLowerCase().includes(catFilter.toLowerCase())));
     }
     if (payFilter !== 'all') {
       expenses = expenses.filter(t => t.paymentMethod === payFilter);
@@ -68,7 +68,9 @@ const DespesasModule = (() => {
 
     const catMap = {};
     expenses.forEach(t => {
-      catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount || 0);
+      // Agrupa com nome simplificado para o gráfico
+      const catName = (t.category || 'Outros').split('(')[0].trim();
+      catMap[catName] = (catMap[catName] || 0) + Number(t.amount || 0);
     });
 
     let labels = Object.keys(catMap);
@@ -145,8 +147,35 @@ const DespesasModule = (() => {
     }
 
     tbody.innerHTML = expenses.map(t => {
-      const isInstallment = t.recurrence === 'Parcelada' || (t.notes && t.notes.includes('parcelad')) || (t.description && /\(\d+\/\d+\)/.test(t.description));
-      const installmentBadge = isInstallment ? `<span class="badge badge-warning" style="font-size: 10px; font-weight: 700; margin-left: 6px;">Parcelada</span>` : '';
+      const instInfo = SaldoCerto.getInstallmentInfo ? SaldoCerto.getInstallmentInfo(t) : { isInstallment: false };
+      const isInstallment = instInfo.isInstallment;
+      const isRecurring = t.recurrence === 'Mensal' || (t.notes && t.notes.includes('[RECORRENTE MENSAL]'));
+
+      let installmentBadge = '';
+      if (isInstallment) {
+        installmentBadge = `<span class="badge badge-warning" style="font-size: 10px; font-weight: 700; margin-left: 6px;">${instInfo.badgeText}</span>`;
+      } else if (isRecurring) {
+        installmentBadge = `<span class="badge badge-info" style="font-size: 10px; font-weight: 700; margin-left: 6px;">Mensal</span>`;
+      }
+
+      // Detalhes do parcelamento mostrados embaixo do valor
+      let underAmountHtml = '';
+      if (isInstallment) {
+        underAmountHtml = `
+          <div class="tx-installment-subtext" style="font-size: 11px; font-weight: 600; color: #D97706; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+            <i data-lucide="layers" style="width: 12px; height: 12px;"></i>
+            <span>${instInfo.summaryText} • Total: ${instInfo.totalText}</span>
+          </div>
+        `;
+      } else if (isRecurring) {
+        underAmountHtml = `
+          <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
+            <span>🔄 Recorrente todo mês</span>
+          </div>
+        `;
+      }
+
+      const cleanNotes = (t.notes || '').replace(/\[PARCELADO [^\]]+\]/g, '').replace(/\[RECORRENTE MENSAL\]/g, '').trim();
 
       return `
         <tr>
@@ -156,7 +185,9 @@ const DespesasModule = (() => {
               <span>${t.description}</span>
               ${installmentBadge}
             </div>
-            <span style="font-size: 11px; color: var(--color-text-muted);">${t.notes || 'Sem observações'}</span>
+            <span style="font-size: 11px; color: var(--color-text-muted); display: block; margin-top: 2px;">
+              ${cleanNotes || (isInstallment ? `${instInfo.summaryText} (Total: ${instInfo.totalText})` : 'Sem observações')}
+            </span>
           </td>
           <td><span class="badge badge-danger">${t.category}</span></td>
           <td><span class="badge badge-info">${t.account || 'Principal'}</span></td>
@@ -165,8 +196,11 @@ const DespesasModule = (() => {
               ${t.paymentMethod || 'PIX'}
             </span>
           </td>
-          <td style="color: var(--color-danger); font-weight: 700; font-size: var(--font-size-base);">
-            - ${SaldoCerto.formatCurrency(t.amount)}
+          <td>
+            <div style="color: var(--color-danger); font-weight: 700; font-size: var(--font-size-base);">
+              - ${SaldoCerto.formatCurrency(t.amount)}
+            </div>
+            ${underAmountHtml}
           </td>
           <td>
             <div class="table-actions">
@@ -189,7 +223,7 @@ const DespesasModule = (() => {
       } else {
         SaldoCerto.deleteTransaction(id);
       }
-      refresh();
+      await refresh();
     });
   };
 
@@ -199,6 +233,9 @@ const DespesasModule = (() => {
   };
 
   const refresh = async () => {
+    if (window.SaldoCertoTransactions && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      await SaldoCertoTransactions.getTransactions();
+    }
     const expenses = getFilteredExpenses();
     renderStats(expenses);
     renderChart(expenses);
