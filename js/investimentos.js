@@ -221,6 +221,7 @@ const InvestimentosModule = (() => {
   const init = () => {
     SaldoCerto.initShell('investimentos');
     renderInvestments();
+    window.addEventListener('saldocerto:themeChanged', renderInvestments);
   };
 
   return {

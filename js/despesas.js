@@ -194,6 +194,7 @@ const DespesasModule = (() => {
 
     window.addEventListener('saldocerto:monthChanged', refresh);
     window.addEventListener('saldocerto:transactionSaved', refresh);
+    window.addEventListener('saldocerto:themeChanged', refresh);
   };
 
   return {

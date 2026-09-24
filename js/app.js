@@ -323,6 +323,12 @@ const SaldoCerto = (() => {
   const getTransactionsForSelectedPeriod = () => {
     return state.transactions.filter(t => {
       if (!t.date) return false;
+      const parts = t.date.split('-');
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1; // 0-indexed
+        return y === state.selectedYear && m === state.selectedMonth;
+      }
       const d = new Date(t.date + 'T00:00:00');
       return d.getFullYear() === state.selectedYear && d.getMonth() === state.selectedMonth;
     });
@@ -414,6 +420,17 @@ const SaldoCerto = (() => {
   const deleteTransaction = (id) => {
     const tx = state.transactions.find(t => t.id === id);
     if (tx) {
+      // Reverte o saldo da conta correspondente
+      if (tx.account) {
+        const acc = state.accounts.find(a => a.name === tx.account);
+        if (acc) {
+          if (tx.type === 'income') {
+            acc.balance -= tx.amount;
+          } else if (tx.type === 'expense') {
+            acc.balance += tx.amount;
+          }
+        }
+      }
       state.transactions = state.transactions.filter(t => t.id !== id);
       saveData();
       showToast(`Transação "${tx.description}" excluída.`, 'info');
@@ -658,6 +675,8 @@ const SaldoCerto = (() => {
       btn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
     });
     if (window.lucide) window.lucide.createIcons();
+
+    window.dispatchEvent(new CustomEvent('saldocerto:themeChanged', { detail: { theme } }));
   };
 
   const toggleTheme = () => {

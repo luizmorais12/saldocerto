@@ -220,6 +220,7 @@ const PatrimonioModule = (() => {
   const init = () => {
     SaldoCerto.initShell('patrimonio');
     renderNetWorth();
+    window.addEventListener('saldocerto:themeChanged', renderNetWorth);
   };
 
   return {

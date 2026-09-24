@@ -271,6 +271,7 @@ const RelatoriosModule = (() => {
     SaldoCerto.initShell('relatorios');
     renderReports();
     setupFilterButtons();
+    window.addEventListener('saldocerto:themeChanged', renderReports);
   };
 
   return {

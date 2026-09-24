@@ -307,6 +307,8 @@ const DashboardModule = (() => {
     window.addEventListener('saldocerto:monthChanged', updateAll);
     // Reage à inserção/edição de transações
     window.addEventListener('saldocerto:transactionSaved', updateAll);
+    // Reage à alternância de tema escuro/claro
+    window.addEventListener('saldocerto:themeChanged', updateAll);
   };
 
   return {
