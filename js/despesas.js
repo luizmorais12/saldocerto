@@ -144,28 +144,40 @@ const DespesasModule = (() => {
       return;
     }
 
-    tbody.innerHTML = expenses.map(t => `
-      <tr>
-        <td><strong>${SaldoCerto.formatDate(t.date)}</strong></td>
-        <td>
-          <div style="font-weight: 600;">${t.description}</div>
-          <span style="font-size: 11px; color: var(--color-text-muted);">${t.notes || 'Sem observações'}</span>
-        </td>
-        <td><span class="badge badge-danger">${t.category}</span></td>
-        <td><span class="badge badge-info">${t.account || 'Principal'}</span></td>
-        <td><span class="badge" style="background: var(--color-bg-subtle); color: var(--color-text-secondary);">${t.paymentMethod || 'PIX'}</span></td>
-        <td style="color: var(--color-danger); font-weight: 700; font-size: var(--font-size-base);">
-          - ${SaldoCerto.formatCurrency(t.amount)}
-        </td>
-        <td>
-          <div class="table-actions">
-            <button class="btn-icon" style="width: 32px; height: 32px;" title="Excluir despesa" onclick="DespesasModule.handleDelete('${t.id}')">
-              <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--color-danger);"></i>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = expenses.map(t => {
+      const isInstallment = t.recurrence === 'Parcelada' || (t.notes && t.notes.includes('parcelad')) || (t.description && /\(\d+\/\d+\)/.test(t.description));
+      const installmentBadge = isInstallment ? `<span class="badge badge-warning" style="font-size: 10px; font-weight: 700; margin-left: 6px;">Parcelada</span>` : '';
+
+      return `
+        <tr>
+          <td><strong>${SaldoCerto.formatDate(t.date)}</strong></td>
+          <td>
+            <div style="font-weight: 600; display: flex; align-items: center; flex-wrap: wrap;">
+              <span>${t.description}</span>
+              ${installmentBadge}
+            </div>
+            <span style="font-size: 11px; color: var(--color-text-muted);">${t.notes || 'Sem observações'}</span>
+          </td>
+          <td><span class="badge badge-danger">${t.category}</span></td>
+          <td><span class="badge badge-info">${t.account || 'Principal'}</span></td>
+          <td>
+            <span class="badge" style="background: var(--color-bg-subtle); color: var(--color-text-secondary);">
+              ${t.paymentMethod || 'PIX'}
+            </span>
+          </td>
+          <td style="color: var(--color-danger); font-weight: 700; font-size: var(--font-size-base);">
+            - ${SaldoCerto.formatCurrency(t.amount)}
+          </td>
+          <td>
+            <div class="table-actions">
+              <button class="btn-icon" style="width: 32px; height: 32px;" title="Excluir despesa" onclick="DespesasModule.handleDelete('${t.id}')">
+                <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--color-danger);"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
 
     if (window.lucide) window.lucide.createIcons();
   };

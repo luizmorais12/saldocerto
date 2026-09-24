@@ -20,7 +20,6 @@ const ASSETS_TO_CACHE = [
   './metas.html',
   './investimentos.html',
   './patrimonio.html',
-  './orcamentos.html',
   './simulador.html',
   './importar.html',
   './relatorios.html',

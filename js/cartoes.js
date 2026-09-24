@@ -406,7 +406,34 @@ const CartoesModule = (() => {
             </div>
           </div>
 
-          <div style="display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--color-border);">
+          <!-- Ajuste Rápido de Limite -->
+          <div style="background: var(--color-bg-subtle); padding: 8px 10px; border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-top: var(--space-3); display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+            <span style="font-size: 11px; font-weight: 600; color: var(--color-text-muted); display: flex; align-items: center; gap: 4px;">
+              <i data-lucide="sliders" style="width: 12px; height: 12px;"></i> Limite:
+            </span>
+            <div style="display: flex; gap: 4px; align-items: center;">
+              <button class="btn btn-outline btn-sm" style="font-size: 10px; padding: 2px 6px; font-weight: 700; color: var(--color-danger);" title="Reduzir limite em R$ 500" onclick="CartoesModule.quickAdjustCardLimit('${c.id}', -500)">
+                -500
+              </button>
+              <button class="btn btn-outline btn-sm" style="font-size: 10px; padding: 2px 6px; font-weight: 700; color: var(--color-danger);" title="Reduzir limite em R$ 1.000" onclick="CartoesModule.quickAdjustCardLimit('${c.id}', -1000)">
+                -1k
+              </button>
+              <button class="btn btn-outline btn-sm" style="font-size: 10px; padding: 2px 6px; font-weight: 700; color: var(--color-success);" title="Aumentar limite em R$ 500" onclick="CartoesModule.quickAdjustCardLimit('${c.id}', 500)">
+                +500
+              </button>
+              <button class="btn btn-outline btn-sm" style="font-size: 10px; padding: 2px 6px; font-weight: 700; color: var(--color-success);" title="Aumentar limite em R$ 1.000" onclick="CartoesModule.quickAdjustCardLimit('${c.id}', 1000)">
+                +1k
+              </button>
+              <button class="btn btn-outline btn-sm" style="font-size: 10px; padding: 2px 6px; font-weight: 700; color: var(--color-success);" title="Aumentar limite em R$ 2.000" onclick="CartoesModule.quickAdjustCardLimit('${c.id}', 2000)">
+                +2k
+              </button>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--color-border);">
+            <button class="btn btn-outline btn-sm" style="font-size: 11px; padding: 3px 8px; display: flex; align-items: center; gap: 4px;" title="Digitar limite exato" onclick="CartoesModule.promptEditLimit('${c.id}')">
+              <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> Digitar Limite
+            </button>
             <button class="btn-icon" style="width: 32px; height: 32px;" title="Excluir cartão" onclick="CartoesModule.handleDeleteCard('${c.id}')">
               <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--color-danger);"></i>
             </button>
@@ -568,6 +595,66 @@ const CartoesModule = (() => {
     });
   };
 
+  const adjustModalLimit = (delta) => {
+    const input = document.getElementById('cardLimit');
+    if (!input) return;
+    const current = parseFloat(input.value) || 0;
+    input.value = Math.max(100, current + delta);
+  };
+
+  const quickAdjustCardLimit = async (cardId, delta) => {
+    const cards = SaldoCerto.getState().creditCards || [];
+    const card = cards.find(c => c.id === cardId);
+    if (!card) return;
+
+    const oldLimit = Number(card.limit || 0);
+    const newLimit = Math.max(100, oldLimit + delta);
+
+    try {
+      if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+        const user = await SaldoCertoAuth.getCurrentUser();
+        if (user) {
+          const { error } = await window.supabaseClient
+            .from('credit_cards')
+            .update({
+              credit_limit: newLimit,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', cardId)
+            .eq('user_id', user.id);
+
+          if (error) throw error;
+        }
+      }
+
+      card.limit = newLimit;
+      SaldoCerto.saveData();
+
+      const signal = delta > 0 ? `+ ${SaldoCerto.formatCurrency(delta)}` : `- ${SaldoCerto.formatCurrency(Math.abs(delta))}`;
+      SaldoCerto.showToast(`Limite do ${card.brand} atualizado (${signal}) → Novo limite: ${SaldoCerto.formatCurrency(newLimit)}`, 'success');
+      await renderCards();
+    } catch (err) {
+      console.error('Erro ao ajustar limite:', err);
+      SaldoCerto.showToast('Erro ao atualizar limite do cartão.', 'danger');
+    }
+  };
+
+  const promptEditLimit = (cardId) => {
+    const cards = SaldoCerto.getState().creditCards || [];
+    const card = cards.find(c => c.id === cardId);
+    if (!card) return;
+
+    const inputVal = prompt(`Digite o novo limite para o cartão ${card.brand}:`, card.limit);
+    if (inputVal === null) return;
+    const newLimit = parseFloat(inputVal.replace(',', '.'));
+    if (isNaN(newLimit) || newLimit < 10) {
+      SaldoCerto.showToast('Informe um valor de limite válido.', 'warning');
+      return;
+    }
+
+    quickAdjustCardLimit(cardId, newLimit - (card.limit || 0));
+  };
+
   const init = async () => {
     SaldoCerto.initShell('cartoes');
     if (window.SaldoCertoAuth) {
@@ -595,7 +682,10 @@ const CartoesModule = (() => {
     handleDeleteCard,
     openAddInstallmentModal,
     handleSaveInstallment,
-    handleDeleteInstallment
+    handleDeleteInstallment,
+    adjustModalLimit,
+    quickAdjustCardLimit,
+    promptEditLimit
   };
 })();
 

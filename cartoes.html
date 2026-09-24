@@ -122,10 +122,6 @@
             <i data-lucide="target"></i>
             <span>Metas</span>
           </a>
-          <a href="orcamentos.html" class="nav-item" data-page="orcamentos">
-            <i data-lucide="calculator"></i>
-            <span>Orçamentos</span>
-          </a>
           <a href="simulador.html" class="nav-item" data-page="simulador">
             <i data-lucide="sparkles"></i>
             <span>Simulador</span>
@@ -344,6 +340,13 @@
             <div class="form-group">
               <label class="form-label">Limite Total (R$) *</label>
               <input type="number" step="0.01" min="1" id="cardLimit" class="form-control" placeholder="5000,00" required>
+              <div style="display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 2px 6px;" onclick="CartoesModule.adjustModalLimit(-1000)">-1.000</button>
+                <button type="button" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 2px 6px;" onclick="CartoesModule.adjustModalLimit(-500)">-500</button>
+                <button type="button" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 2px 6px;" onclick="CartoesModule.adjustModalLimit(+500)">+500</button>
+                <button type="button" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 2px 6px;" onclick="CartoesModule.adjustModalLimit(+1000)">+1.000</button>
+                <button type="button" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 2px 6px;" onclick="CartoesModule.adjustModalLimit(+2000)">+2.000</button>
+              </div>
             </div>
           </div>
 

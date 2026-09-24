@@ -1025,7 +1025,6 @@ const SaldoCerto = (() => {
     { title: 'Ir para Investimentos', icon: 'trending-up', action: () => window.location.href = 'investimentos.html' },
     { title: 'Ir para Patrimônio', icon: 'pie-chart', action: () => window.location.href = 'patrimonio.html' },
     { title: 'Abrir Relatórios', icon: 'file-bar-chart', action: () => window.location.href = 'relatorios.html' },
-    { title: 'Orçamentos & Teto de Gastos (50/30/20)', icon: 'calculator', action: () => window.location.href = 'orcamentos.html' },
     { title: 'Simulador de Juros Compostos', icon: 'sparkles', action: () => window.location.href = 'simulador.html' },
     { title: 'Importar Extrato OFX / CSV', icon: 'upload', action: () => window.location.href = 'importar.html' },
     { title: 'Nova transação', icon: 'plus-circle', action: () => { closeModal('commandPaletteModal'); openModal('newTransactionModal'); } },
@@ -1141,7 +1140,13 @@ const SaldoCerto = (() => {
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label">Valor (R$) *</label>
-                  <input type="number" step="0.01" min="0.01" id="modalTxAmount" class="form-control" placeholder="0,00" required>
+                  <input type="number" step="0.01" min="0.01" id="modalTxAmount" class="form-control" placeholder="0,00" required oninput="SaldoCerto.updateInstallmentCalc()">
+                  <div style="display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 5px;" onclick="SaldoCerto.adjustTxAmount(50)">+50</button>
+                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 5px;" onclick="SaldoCerto.adjustTxAmount(100)">+100</button>
+                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 5px;" onclick="SaldoCerto.adjustTxAmount(200)">+200</button>
+                    <button type="button" class="btn btn-outline btn-sm" style="font-size: 10px; padding: 1px 5px;" onclick="SaldoCerto.adjustTxAmount(500)">+500</button>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Data *</label>
@@ -1167,7 +1172,7 @@ const SaldoCerto = (() => {
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label">Forma de Pagamento</label>
-                  <select id="modalTxPaymentMethod" class="form-select">
+                  <select id="modalTxPaymentMethod" class="form-select" onchange="SaldoCerto.checkInstallmentTrigger()">
                     <option value="PIX">PIX</option>
                     <option value="Cartão de Crédito">Cartão de Crédito</option>
                     <option value="Cartão de Débito">Cartão de Débito</option>
@@ -1178,11 +1183,39 @@ const SaldoCerto = (() => {
                 </div>
                 <div class="form-group">
                   <label class="form-label">Recorrência</label>
-                  <select id="modalTxRecurrence" class="form-select">
+                  <select id="modalTxRecurrence" class="form-select" onchange="SaldoCerto.checkInstallmentTrigger()">
                     <option value="Única">Única</option>
                     <option value="Mensal">Fixa / Mensal</option>
                     <option value="Parcelada">Parcelada</option>
                   </select>
+                </div>
+              </div>
+
+              <!-- Caixa de Parcelamento de Despesa -->
+              <div id="modalTxInstallmentsBox" style="display: none; background: var(--color-bg-subtle); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-bottom: var(--space-3);">
+                <div class="form-row" style="margin-bottom: 0;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: var(--font-size-xs);">Número de Parcelas</label>
+                    <select id="modalTxInstallments" class="form-select" onchange="SaldoCerto.updateInstallmentCalc()">
+                      <option value="1">1x (À vista)</option>
+                      <option value="2">2x</option>
+                      <option value="3">3x</option>
+                      <option value="4">4x</option>
+                      <option value="5">5x</option>
+                      <option value="6">6x</option>
+                      <option value="8">8x</option>
+                      <option value="10">10x</option>
+                      <option value="12">12x</option>
+                      <option value="18">18x</option>
+                      <option value="24">24x</option>
+                      <option value="36">36x</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: flex-end;">
+                    <div id="modalTxInstallmentCalcText" style="font-size: 11px; color: var(--color-primary); font-weight: 700; padding-bottom: 8px;">
+                      Total à vista
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1253,34 +1286,111 @@ const SaldoCerto = (() => {
     }
   };
 
-  const handleSaveTransaction = (e) => {
+  const adjustTxAmount = (delta) => {
+    const inp = document.getElementById('modalTxAmount');
+    if (!inp) return;
+    const current = parseFloat(inp.value) || 0;
+    inp.value = (current + delta).toFixed(2);
+    updateInstallmentCalc();
+  };
+
+  const checkInstallmentTrigger = () => {
+    const payMethod = document.getElementById('modalTxPaymentMethod')?.value;
+    const rec = document.getElementById('modalTxRecurrence')?.value;
+    const box = document.getElementById('modalTxInstallmentsBox');
+    if (box) {
+      if (rec === 'Parcelada' || payMethod === 'Cartão de Crédito') {
+        box.style.display = 'block';
+        updateInstallmentCalc();
+      } else {
+        box.style.display = 'none';
+      }
+    }
+  };
+
+  const updateInstallmentCalc = () => {
+    const amount = parseFloat(document.getElementById('modalTxAmount')?.value) || 0;
+    const inst = parseInt(document.getElementById('modalTxInstallments')?.value || '1', 10);
+    const textEl = document.getElementById('modalTxInstallmentCalcText');
+    if (textEl) {
+      if (inst > 1 && amount > 0) {
+        const perInst = amount / inst;
+        textEl.textContent = `${inst}x de ${formatCurrency(perInst)}`;
+      } else if (amount > 0) {
+        textEl.textContent = `Total: ${formatCurrency(amount)} (à vista)`;
+      } else {
+        textEl.textContent = '1x de R$ 0,00';
+      }
+    }
+  };
+
+  const handleSaveTransaction = async (e) => {
     e.preventDefault();
     const type = document.getElementById('modalTxType').value;
-    const desc = document.getElementById('modalTxDesc').value;
+    let desc = document.getElementById('modalTxDesc').value.trim();
     const amount = document.getElementById('modalTxAmount').value;
     const date = document.getElementById('modalTxDate').value;
     const category = document.getElementById('modalTxCategory').value;
     const account = document.getElementById('modalTxAccount').value;
     const paymentMethod = document.getElementById('modalTxPaymentMethod').value;
     const recurrence = document.getElementById('modalTxRecurrence').value;
-    const notes = document.getElementById('modalTxNotes').value;
+    const installments = parseInt(document.getElementById('modalTxInstallments')?.value || '1', 10);
+    let notes = document.getElementById('modalTxNotes').value.trim();
 
     if (!desc || !amount || Number(amount) <= 0) {
       showToast('Por favor, informe uma descrição e um valor válido.', 'danger');
       return;
     }
 
-    addTransaction({
-      type,
-      description: desc,
-      amount,
-      date,
-      category,
-      account,
-      paymentMethod,
-      recurrence,
-      notes
-    });
+    if (installments > 1) {
+      if (!desc.includes('(')) {
+        desc = `${desc} (1/${installments})`;
+      }
+      const perInst = Number(amount) / installments;
+      const noteInst = `Compra parcelada em ${installments}x de ${formatCurrency(perInst)}.`;
+      notes = notes ? `${notes} • ${noteInst}` : noteInst;
+    }
+
+    if (window.SaldoCertoTransactions && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      try {
+        await SaldoCertoTransactions.createTransaction({
+          type,
+          description: desc,
+          amount,
+          date,
+          category,
+          account,
+          paymentMethod,
+          recurrence: installments > 1 ? 'Parcelada' : recurrence,
+          notes
+        });
+      } catch (err) {
+        console.warn('Erro ao salvar transação no Supabase, caindo para local:', err);
+        addTransaction({
+          type,
+          description: desc,
+          amount,
+          date,
+          category,
+          account,
+          paymentMethod,
+          recurrence: installments > 1 ? 'Parcelada' : recurrence,
+          notes
+        });
+      }
+    } else {
+      addTransaction({
+        type,
+        description: desc,
+        amount,
+        date,
+        category,
+        account,
+        paymentMethod,
+        recurrence: installments > 1 ? 'Parcelada' : recurrence,
+        notes
+      });
+    }
 
     closeModal('newTransactionModal');
     document.getElementById('globalTransactionForm').reset();
@@ -1324,6 +1434,9 @@ const SaldoCerto = (() => {
     toggleTheme,
     setModalTxType,
     handleSaveTransaction,
+    adjustTxAmount,
+    checkInstallmentTrigger,
+    updateInstallmentCalc,
     togglePrivacy,
     openNotificationDrawer,
     closeNotificationDrawer,

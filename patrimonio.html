@@ -76,10 +76,6 @@
             <i data-lucide="target"></i>
             <span>Metas</span>
           </a>
-          <a href="orcamentos.html" class="nav-item" data-page="orcamentos">
-            <i data-lucide="calculator"></i>
-            <span>Orçamentos</span>
-          </a>
           <a href="simulador.html" class="nav-item" data-page="simulador">
             <i data-lucide="sparkles"></i>
             <span>Simulador</span>
@@ -245,6 +241,7 @@
                   <tr>
                     <th>Nome do Bem</th>
                     <th>Categoria</th>
+                    <th>Forma de Aquisição</th>
                     <th>Valor Estimado</th>
                     <th>Ações</th>
                   </tr>
@@ -256,14 +253,14 @@
             </div>
           </div>
 
-          <!-- Coluna 2: Passivos -->
+          <!-- Coluna 2: Passivos / Financiamentos e Dívidas -->
           <div class="card">
             <div class="card-header">
               <div>
                 <h3 class="card-title" style="color: var(--color-danger); display: flex; align-items: center; gap: 8px;">
-                  <i data-lucide="minus-circle"></i> Minhas Dívidas & Passivos
+                  <i data-lucide="minus-circle"></i> Financiamentos & Dívidas
                 </h3>
-                <p style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Compromissos e obrigações a quitar</p>
+                <p style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Meses restantes, parcelas e saldo devedor</p>
               </div>
               <button class="btn btn-outline btn-sm" onclick="PatrimonioModule.openAddLiabilityModal()">
                 + Adicionar
@@ -274,8 +271,9 @@
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>Dívida / Obrigação</th>
-                    <th>Categoria</th>
+                    <th>Financiamento / Dívida</th>
+                    <th>Parcelas & Prazo</th>
+                    <th>Valor Mensal</th>
                     <th>Saldo Devedor</th>
                     <th>Ações</th>
                   </tr>
@@ -297,7 +295,7 @@
 
   <!-- Modal Adicionar Ativo -->
   <div id="assetModal" class="modal-overlay">
-    <div class="modal-dialog" style="max-width: 440px;">
+    <div class="modal-dialog" style="max-width: 480px;">
       <div class="modal-header">
         <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
           <i data-lucide="plus-circle" class="text-success"></i> Adicionar Ativo / Bem
@@ -310,24 +308,54 @@
         <div class="modal-body">
           <div class="form-group">
             <label class="form-label">Descrição do Ativo *</label>
-            <input type="text" id="assetName" class="form-control" placeholder="Ex: Apartamento, HB20 2022, Joias..." required>
+            <input type="text" id="assetName" class="form-control" placeholder="Ex: Apartamento, HB20 2022, Notebook..." required>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Categoria *</label>
               <select id="assetCategory" class="form-select" required>
-                <option value="Dinheiro">Dinheiro & Contas</option>
-                <option value="Investimentos">Investimentos</option>
                 <option value="Veículos">Veículos</option>
                 <option value="Imóveis">Imóveis</option>
+                <option value="Investimentos">Investimentos</option>
+                <option value="Dinheiro">Dinheiro & Contas</option>
                 <option value="Outros">Outros Bens</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Valor Estimado (R$) *</label>
-              <input type="number" step="0.01" min="1" id="assetValue" class="form-control" placeholder="45000,00" required>
+              <label class="form-label">Forma de Aquisição *</label>
+              <select id="assetAcquisitionType" class="form-select" onchange="PatrimonioModule.toggleAssetInstallmentFields()" required>
+                <option value="a_vista">À Vista (100% Quitado)</option>
+                <option value="parcelado">Parcelado / Financiado</option>
+              </select>
             </div>
+          </div>
+
+          <!-- Campos extras de parcelamento de bem -->
+          <div id="assetInstallmentsBox" style="display: none; background: var(--color-bg-subtle); padding: var(--space-3); border-radius: var(--radius-md); margin-bottom: var(--space-3); border: 1px solid var(--color-border);">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" style="font-size: var(--font-size-xs);">Total de Parcelas da Compra</label>
+                <input type="number" id="assetTotalInstallments" class="form-control" min="1" max="420" placeholder="Ex: 48, 60">
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size: var(--font-size-xs);">Parcelas Já Pagas</label>
+                <input type="number" id="assetPaidInstallments" class="form-control" min="0" max="420" placeholder="Ex: 24">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-size: var(--font-size-xs);">Status da Aquisição</label>
+              <select id="assetFinancingStatus" class="form-select">
+                <option value="em_andamento">Financiamento em Andamento</option>
+                <option value="quitado">Quitado Recentemente</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Valor Estimado de Mercado Atual (R$) *</label>
+            <input type="number" step="0.01" min="1" id="assetValue" class="form-control" placeholder="45000,00" required>
+            <span style="font-size: 11px; color: var(--color-text-muted);">Valor justo do bem para cômputo no patrimônio bruto.</span>
           </div>
         </div>
 
@@ -339,12 +367,12 @@
     </div>
   </div>
 
-  <!-- Modal Adicionar Dívida / Passivo -->
+  <!-- Modal Adicionar Dívida / Financiamento -->
   <div id="liabilityModal" class="modal-overlay">
-    <div class="modal-dialog" style="max-width: 440px;">
+    <div class="modal-dialog" style="max-width: 480px;">
       <div class="modal-header">
         <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
-          <i data-lucide="minus-circle" class="text-danger"></i> Adicionar Dívida / Passivo
+          <i data-lucide="minus-circle" class="text-danger"></i> Dívida ou Financiamento
         </h3>
         <button class="modal-close" onclick="SaldoCerto.closeModal('liabilityModal')">
           <i data-lucide="x"></i>
@@ -353,30 +381,72 @@
       <form id="liabilityForm" onsubmit="PatrimonioModule.handleSaveLiability(event)">
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label">Descrição da Dívida *</label>
-            <input type="text" id="liabilityName" class="form-control" placeholder="Ex: Financiamento Auto, Empréstimo..." required>
+            <label class="form-label">Descrição do Financiamento / Dívida *</label>
+            <input type="text" id="liabilityName" class="form-control" placeholder="Ex: Financiamento Imobiliário Caixa, Financiamento Onix..." required>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Categoria *</label>
               <select id="liabilityCategory" class="form-select" required>
-                <option value="Financiamentos">Financiamentos</option>
-                <option value="Empréstimos">Empréstimos Bancários</option>
-                <option value="Cartões">Cartões & Faturas</option>
+                <option value="Financiamentos">Financiamento Imobiliário / Veicular</option>
+                <option value="Empréstimos">Empréstimo Pessoal / Consignado</option>
+                <option value="Cartões">Cartões & Faturas Rotativas</option>
+                <option value="Consórcio">Consórcio</option>
                 <option value="Outros">Outras Dívidas</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Valor da Dívida (R$) *</label>
-              <input type="number" step="0.01" min="1" id="liabilityValue" class="form-control" placeholder="12000,00" required>
+              <label class="form-label">É Financiamento / Parcelado? *</label>
+              <select id="liabilityIsInstallment" class="form-select" onchange="PatrimonioModule.toggleLiabilityInstallmentFields()" required>
+                <option value="yes">Sim (Parcelas Mensais)</option>
+                <option value="no">Não (Dívida Única / Saldo)</option>
+              </select>
             </div>
+          </div>
+
+          <!-- Bloco de Meses e Parcelas de Financiamento -->
+          <div id="liabilityInstallmentsBox" style="background: var(--color-bg-subtle); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-3); border: 1px solid var(--color-border);">
+            <div style="font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: var(--space-2); display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="calendar" style="width: 14px; height: 14px;"></i> Quantidade de Meses & Parcelas
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" style="font-size: var(--font-size-xs);">Total de Parcelas (Meses) *</label>
+                <input type="number" id="liabilityTotalInstallments" class="form-control" min="1" max="420" placeholder="Ex: 48, 60, 360" oninput="PatrimonioModule.calcDebtBalance()">
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size: var(--font-size-xs);">Quantas Faltam Pagar? *</label>
+                <input type="number" id="liabilityRemainingInstallments" class="form-control" min="0" max="420" placeholder="Ex: 32" oninput="PatrimonioModule.calcDebtBalance()">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" style="font-size: var(--font-size-xs);">Valor da Parcela Mensal (R$)</label>
+                <input type="number" step="0.01" min="0" id="liabilityInstallmentAmount" class="form-control" placeholder="Ex: 850,00" oninput="PatrimonioModule.calcDebtBalance()">
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size: var(--font-size-xs);">Dia do Vencimento</label>
+                <input type="number" min="1" max="31" id="liabilityDueDay" class="form-control" placeholder="Ex: dia 10">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label class="form-label" style="margin-bottom: 0;">Saldo Devedor Atual a Quitar (R$) *</label>
+              <button type="button" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="PatrimonioModule.autoCalculateTotalFromInstallments()">
+                Calcular automaticamente
+              </button>
+            </div>
+            <input type="number" step="0.01" min="0.01" id="liabilityValue" class="form-control" placeholder="12000,00" required>
+            <span style="font-size: 11px; color: var(--color-text-muted);">Saldo pendente de quitação que reduz seu patrimônio líquido.</span>
           </div>
         </div>
 
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="SaldoCerto.closeModal('liabilityModal')">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Salvar Dívida</button>
+          <button type="submit" class="btn btn-primary">Salvar Dívida / Financiamento</button>
         </div>
       </form>
     </div>

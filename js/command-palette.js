@@ -18,7 +18,6 @@
     { id: 'goto-metas', title: 'Ir para Metas', icon: 'target', action: () => window.location.href = 'metas.html' },
     { id: 'goto-investimentos', title: 'Ir para Investimentos', icon: 'trending-up', action: () => window.location.href = 'investimentos.html' },
     { id: 'goto-patrimonio', title: 'Ir para Patrimônio', icon: 'pie-chart', action: () => window.location.href = 'patrimonio.html' },
-    { id: 'goto-orcamentos', title: 'Ir para Orçamentos (50/30/20)', icon: 'calculator', action: () => window.location.href = 'orcamentos.html' },
     { id: 'goto-relatorios', title: 'Abrir Relatórios', icon: 'file-bar-chart', action: () => window.location.href = 'relatorios.html' },
     { id: 'goto-simulador', title: 'Abrir Simulador de Investimentos', icon: 'sparkles', action: () => window.location.href = 'simulador.html' },
     { id: 'goto-importar', title: 'Importar Extrato OFX / CSV', icon: 'upload', action: () => window.location.href = 'importar.html' },
