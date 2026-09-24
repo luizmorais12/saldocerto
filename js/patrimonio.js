@@ -1,25 +1,248 @@
 /**
- * SaldoCerto - Módulo de Patrimônio Líquido
+ * SaldoCerto - Módulo de Patrimônio Líquido (Supabase Integrado)
+ * Cálculo em tempo real: Ativos (Bens + Contas + Investimentos) - Passivos (Dívidas + Cartões) com RLS.
  */
 
 const PatrimonioModule = (() => {
   let netWorthChart = null;
 
-  const renderNetWorth = () => {
-    const state = SaldoCerto.getState();
-    const assets = state.assets || [];
-    const liabilities = state.liabilities || [];
+  /**
+   * Busca bens e ativos cadastrados na tabela assets
+   */
+  const getAssets = async () => {
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      try {
+        const user = await SaldoCertoAuth.getCurrentUser();
+        if (!user) return [];
 
-    const totalAssets = assets.reduce((sum, a) => sum + Number(a.value || 0), 0);
-    const totalLiabilities = liabilities.reduce((sum, l) => sum + Number(l.value || 0), 0);
+        const { data, error } = await window.supabaseClient
+          .from('assets')
+          .select('*')
+          .order('value', { ascending: false });
+
+        if (error) {
+          console.error('[Patrimonio Supabase] Erro ao buscar ativos:', error);
+          return SaldoCerto.getState().assets || [];
+        }
+
+        const mapped = (data || []).map(a => ({
+          id: a.id,
+          name: a.name,
+          category: a.type,
+          value: Number(a.value),
+          description: a.description
+        }));
+
+        SaldoCerto.getState().assets = mapped;
+        return mapped;
+      } catch (err) {
+        console.error('[Patrimonio Supabase] Exceção em getAssets:', err);
+        return SaldoCerto.getState().assets || [];
+      }
+    }
+    return SaldoCerto.getState().assets || [];
+  };
+
+  /**
+   * Cadastra novo bem ou ativo
+   */
+  const createAsset = async (assetData) => {
+    const val = parseFloat(assetData.value) || 0;
+
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { data, error } = await window.supabaseClient
+        .from('assets')
+        .insert({
+          user_id: user.id,
+          name: assetData.name.trim(),
+          type: assetData.category || 'Outros',
+          value: val,
+          description: assetData.description || ''
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const created = {
+        id: data.id,
+        name: data.name,
+        category: data.type,
+        value: Number(data.value),
+        description: data.description
+      };
+
+      SaldoCerto.getState().assets.push(created);
+      return created;
+    } else {
+      const newAsset = {
+        id: 'asset-' + Date.now(),
+        name: assetData.name.trim(),
+        category: assetData.category,
+        value: val
+      };
+      SaldoCerto.getState().assets.push(newAsset);
+      SaldoCerto.saveData();
+      return newAsset;
+    }
+  };
+
+  /**
+   * Exclui um bem/ativo
+   */
+  const deleteAsset = async (id) => {
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { error } = await window.supabaseClient
+        .from('assets')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+    }
+
+    SaldoCerto.getState().assets = (SaldoCerto.getState().assets || []).filter(a => a.id !== id);
+    SaldoCerto.saveData();
+  };
+
+  /**
+   * Busca passivos e dívidas cadastradas na tabela liabilities
+   */
+  const getLiabilities = async () => {
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      try {
+        const user = await SaldoCertoAuth.getCurrentUser();
+        if (!user) return [];
+
+        const { data, error } = await window.supabaseClient
+          .from('liabilities')
+          .select('*')
+          .order('remaining_amount', { ascending: false });
+
+        if (error) {
+          console.error('[Patrimonio Supabase] Erro ao buscar passivos:', error);
+          return SaldoCerto.getState().liabilities || [];
+        }
+
+        const mapped = (data || []).map(l => ({
+          id: l.id,
+          name: l.name,
+          category: l.type,
+          value: Number(l.remaining_amount || l.total_amount),
+          totalAmount: Number(l.total_amount),
+          dueDate: l.due_date,
+          description: l.description
+        }));
+
+        SaldoCerto.getState().liabilities = mapped;
+        return mapped;
+      } catch (err) {
+        console.error('[Patrimonio Supabase] Exceção em getLiabilities:', err);
+        return SaldoCerto.getState().liabilities || [];
+      }
+    }
+    return SaldoCerto.getState().liabilities || [];
+  };
+
+  /**
+   * Cadastra novo passivo ou dívida
+   */
+  const createLiability = async (liabData) => {
+    const val = parseFloat(liabData.value) || 0;
+
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { data, error } = await window.supabaseClient
+        .from('liabilities')
+        .insert({
+          user_id: user.id,
+          name: liabData.name.trim(),
+          type: liabData.category || 'Outros',
+          total_amount: val,
+          remaining_amount: val,
+          description: liabData.description || ''
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const created = {
+        id: data.id,
+        name: data.name,
+        category: data.type,
+        value: Number(data.remaining_amount),
+        totalAmount: Number(data.total_amount),
+        description: data.description
+      };
+
+      SaldoCerto.getState().liabilities.push(created);
+      return created;
+    } else {
+      const newLiab = {
+        id: 'liab-' + Date.now(),
+        name: liabData.name.trim(),
+        category: liabData.category,
+        value: val
+      };
+      SaldoCerto.getState().liabilities.push(newLiab);
+      SaldoCerto.saveData();
+      return newLiab;
+    }
+  };
+
+  /**
+   * Exclui um passivo/dívida
+   */
+  const deleteLiability = async (id) => {
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { error } = await window.supabaseClient
+        .from('liabilities')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+    }
+
+    SaldoCerto.getState().liabilities = (SaldoCerto.getState().liabilities || []).filter(l => l.id !== id);
+    SaldoCerto.saveData();
+  };
+
+  /**
+   * Renderização do patrimônio líquido e tabelas
+   */
+  const renderNetWorth = async () => {
+    const [assets, liabilities] = await Promise.all([
+      getAssets(),
+      getLiabilities()
+    ]);
+
+    const totalAssets = SaldoCerto.calculateTotalAssets();
+    const totalLiabilities = SaldoCerto.calculateTotalLiabilities();
     const netWorth = totalAssets - totalLiabilities;
 
-    document.getElementById('statTotalAssets').textContent = SaldoCerto.formatCurrency(totalAssets);
-    document.getElementById('statTotalLiabilities').textContent = SaldoCerto.formatCurrency(totalLiabilities);
+    const statAssets = document.getElementById('statTotalAssets');
+    if (statAssets) statAssets.textContent = SaldoCerto.formatCurrency(totalAssets);
+    const statLiab = document.getElementById('statTotalLiabilities');
+    if (statLiab) statLiab.textContent = SaldoCerto.formatCurrency(totalLiabilities);
     
     const netWorthEl = document.getElementById('statNetWorth');
-    netWorthEl.textContent = SaldoCerto.formatCurrency(netWorth);
-    netWorthEl.style.color = netWorth >= 0 ? 'var(--color-primary)' : 'var(--color-danger)';
+    if (netWorthEl) {
+      netWorthEl.textContent = SaldoCerto.formatCurrency(netWorth);
+      netWorthEl.style.color = netWorth >= 0 ? 'var(--color-primary)' : 'var(--color-danger)';
+    }
 
     const ratio = totalAssets > 0 ? (((totalAssets - totalLiabilities) / totalAssets) * 100).toFixed(0) : 0;
     const ratioEl = document.getElementById('statSolvencyRatio');
@@ -43,7 +266,6 @@ const PatrimonioModule = (() => {
     const textColor = isDark ? '#94A3B8' : '#64748B';
     const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
 
-    // Simulação consistente de evolução histórica até o valor atual
     const m1 = currentNetWorth * 0.82;
     const m2 = currentNetWorth * 0.85;
     const m3 = currentNetWorth * 0.89;
@@ -100,17 +322,23 @@ const PatrimonioModule = (() => {
     if (!tbody) return;
 
     if (assets.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align: center; padding: 20px;">Nenhum ativo cadastrado.</td></tr>`;
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" style="text-align: center; padding: var(--space-6); color: var(--color-text-muted);">
+            Nenhum bem ou ativo adicional cadastrado.
+          </td>
+        </tr>
+      `;
       return;
     }
 
     tbody.innerHTML = assets.map(a => `
       <tr>
         <td><strong>${a.name}</strong></td>
-        <td><span class="badge badge-success">${a.category}</span></td>
+        <td><span class="badge badge-info">${a.category}</span></td>
         <td style="color: var(--color-success); font-weight: 700;">+ ${SaldoCerto.formatCurrency(a.value)}</td>
         <td>
-          <button class="btn-icon" style="width: 32px; height: 32px;" title="Remover ativo" onclick="PatrimonioModule.handleDeleteAsset('${a.id}')">
+          <button class="btn-icon" style="width: 28px; height: 28px;" title="Excluir ativo" onclick="PatrimonioModule.handleDeleteAsset('${a.id}')">
             <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--color-danger);"></i>
           </button>
         </td>
@@ -125,17 +353,23 @@ const PatrimonioModule = (() => {
     if (!tbody) return;
 
     if (liabilities.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align: center; padding: 20px;">Nenhuma dívida registrada. Parabéns!</td></tr>`;
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" style="text-align: center; padding: var(--space-6); color: var(--color-text-muted);">
+            Nenhuma dívida ou passivo registrado. Excelente!
+          </td>
+        </tr>
+      `;
       return;
     }
 
     tbody.innerHTML = liabilities.map(l => `
       <tr>
         <td><strong>${l.name}</strong></td>
-        <td><span class="badge badge-danger">${l.category}</span></td>
+        <td><span class="badge badge-warning">${l.category}</span></td>
         <td style="color: var(--color-danger); font-weight: 700;">- ${SaldoCerto.formatCurrency(l.value)}</td>
         <td>
-          <button class="btn-icon" style="width: 32px; height: 32px;" title="Remover dívida" onclick="PatrimonioModule.handleDeleteLiability('${l.id}')">
+          <button class="btn-icon" style="width: 28px; height: 28px;" title="Excluir passivo" onclick="PatrimonioModule.handleDeleteLiability('${l.id}')">
             <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--color-danger);"></i>
           </button>
         </td>
@@ -150,87 +384,102 @@ const PatrimonioModule = (() => {
     SaldoCerto.openModal('assetModal');
   };
 
-  const handleSaveAsset = (e) => {
-    e.preventDefault();
-    const name = document.getElementById('assetName').value.trim();
-    const category = document.getElementById('assetCategory').value;
-    const value = parseFloat(document.getElementById('assetValue').value) || 0;
-
-    const state = SaldoCerto.getState();
-    state.assets = state.assets || [];
-    state.assets.push({
-      id: 'ast-' + Date.now(),
-      name,
-      category,
-      value
-    });
-
-    SaldoCerto.saveData();
-    SaldoCerto.showToast(`Ativo "${name}" adicionado com sucesso!`, 'success');
-    SaldoCerto.closeModal('assetModal');
-    renderNetWorth();
-  };
-
-  const handleDeleteAsset = (id) => {
-    SaldoCerto.confirmAction('Remover este ativo?', () => {
-      const state = SaldoCerto.getState();
-      state.assets = (state.assets || []).filter(a => a.id !== id);
-      SaldoCerto.saveData();
-      SaldoCerto.showToast('Ativo removido.', 'info');
-      renderNetWorth();
-    });
-  };
-
   const openAddLiabilityModal = () => {
     document.getElementById('liabilityForm').reset();
     SaldoCerto.openModal('liabilityModal');
   };
 
-  const handleSaveLiability = (e) => {
+  const handleSaveAsset = async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('assetName').value.trim();
+    const category = document.getElementById('assetCategory').value;
+    const value = document.getElementById('assetValue').value;
+
+    if (!name || !value) {
+      SaldoCerto.showToast('Informe o nome e o valor do bem.', 'warning');
+      return;
+    }
+
+    try {
+      await createAsset({ name, category, value });
+      SaldoCerto.closeModal('assetModal');
+      SaldoCerto.showToast(`Ativo "${name}" cadastrado com sucesso!`, 'success');
+      await renderNetWorth();
+    } catch (err) {
+      SaldoCerto.showToast('Erro ao cadastrar bem.', 'danger');
+    }
+  };
+
+  const handleSaveLiability = async (e) => {
     e.preventDefault();
     const name = document.getElementById('liabilityName').value.trim();
     const category = document.getElementById('liabilityCategory').value;
-    const value = parseFloat(document.getElementById('liabilityValue').value) || 0;
+    const value = document.getElementById('liabilityValue').value;
 
-    const state = SaldoCerto.getState();
-    state.liabilities = state.liabilities || [];
-    state.liabilities.push({
-      id: 'lia-' + Date.now(),
-      name,
-      category,
-      value
+    if (!name || !value) {
+      SaldoCerto.showToast('Informe o nome e o saldo devedor.', 'warning');
+      return;
+    }
+
+    try {
+      await createLiability({ name, category, value });
+      SaldoCerto.closeModal('liabilityModal');
+      SaldoCerto.showToast(`Passivo "${name}" registrado!`, 'success');
+      await renderNetWorth();
+    } catch (err) {
+      SaldoCerto.showToast('Erro ao registrar passivo.', 'danger');
+    }
+  };
+
+  const handleDeleteAsset = (id) => {
+    SaldoCerto.confirmAction('Tem certeza que deseja excluir este bem/ativo?', async () => {
+      try {
+        await deleteAsset(id);
+        SaldoCerto.showToast('Ativo excluído com sucesso.', 'info');
+        await renderNetWorth();
+      } catch (err) {
+        SaldoCerto.showToast('Erro ao excluir ativo.', 'danger');
+      }
     });
-
-    SaldoCerto.saveData();
-    SaldoCerto.showToast(`Dívida "${name}" registrada!`, 'warning');
-    SaldoCerto.closeModal('liabilityModal');
-    renderNetWorth();
   };
 
   const handleDeleteLiability = (id) => {
-    SaldoCerto.confirmAction('Remover esta dívida/passivo?', () => {
-      const state = SaldoCerto.getState();
-      state.liabilities = (state.liabilities || []).filter(l => l.id !== id);
-      SaldoCerto.saveData();
-      SaldoCerto.showToast('Dívida removida.', 'info');
-      renderNetWorth();
+    SaldoCerto.confirmAction('Tem certeza que deseja excluir esta dívida/passivo?', async () => {
+      try {
+        await deleteLiability(id);
+        SaldoCerto.showToast('Dívida excluída com sucesso.', 'info');
+        await renderNetWorth();
+      } catch (err) {
+        SaldoCerto.showToast('Erro ao excluir passivo.', 'danger');
+      }
     });
   };
 
-  const init = () => {
+  const init = async () => {
     SaldoCerto.initShell('patrimonio');
-    renderNetWorth();
-    window.addEventListener('saldocerto:themeChanged', renderNetWorth);
+    if (window.SaldoCertoAuth) {
+      await SaldoCertoAuth.requireAuth();
+    }
+    if (window.SaldoCertoProfile) {
+      await SaldoCertoProfile.syncUserProfileUI();
+    }
+    await renderNetWorth();
   };
 
   return {
     init,
+    getAssets,
+    createAsset,
+    deleteAsset,
+    getLiabilities,
+    createLiability,
+    deleteLiability,
     renderNetWorth,
     openAddAssetModal,
-    handleSaveAsset,
-    handleDeleteAsset,
     openAddLiabilityModal,
+    handleSaveAsset,
     handleSaveLiability,
+    handleDeleteAsset,
     handleDeleteLiability
   };
 })();
