@@ -1,21 +1,35 @@
 /**
  * SaldoCerto - Módulo de Configurações, Perfil e Dark Mode
+ * Integrado ao Supabase Auth, Profiles e preferências locais (tema, olho mágico).
  */
 
 const ConfiguracoesModule = (() => {
   const STORAGE_KEY = 'saldocerto_db_v1';
 
-  const loadSettingsIntoForm = () => {
-    const state = SaldoCerto.getState();
-    const settings = state.settings || { userName: 'Luiz Morais', userEmail: 'luiz@saldocerto.com.br' };
+  const loadSettingsIntoForm = async () => {
+    let userName = 'Usuário SaldoCerto';
+    let userEmail = 'usuario@saldocerto.app';
+
+    if (window.SaldoCertoProfile) {
+      const profile = await SaldoCertoProfile.loadProfile();
+      if (profile) {
+        userName = profile.full_name || userName;
+        userEmail = profile.email || userEmail;
+      }
+    } else {
+      const state = SaldoCerto.getState();
+      const settings = state.settings || {};
+      userName = settings.userName || userName;
+      userEmail = settings.userEmail || userEmail;
+    }
 
     const nameInput = document.getElementById('settingUserName');
     const emailInput = document.getElementById('settingUserEmail');
 
-    if (nameInput) nameInput.value = settings.userName || 'Luiz Morais';
-    if (emailInput) emailInput.value = settings.userEmail || 'luiz@saldocerto.com.br';
+    if (nameInput) nameInput.value = userName;
+    if (emailInput) emailInput.value = userEmail;
 
-    updateAvatarDisplay(settings.userName || 'Luiz Morais');
+    updateAvatarDisplay(userName);
     updateThemePickerDisplay();
   };
 
@@ -52,30 +66,36 @@ const ConfiguracoesModule = (() => {
     }
   };
 
-  const setTheme = (theme) => {
+  const setTheme = async (theme) => {
     SaldoCerto.initTheme();
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('saldocerto_theme', theme);
     
-    const state = SaldoCerto.getState();
-    state.settings = state.settings || {};
-    state.settings.theme = theme;
-    SaldoCerto.saveData();
+    // Atualiza no banco Supabase se profile estiver disponível
+    if (window.SaldoCertoProfile) {
+      await SaldoCertoProfile.updateProfile({ theme });
+    }
 
     updateThemePickerDisplay();
     SaldoCerto.showToast(`Modo ${theme === 'dark' ? 'escuro' : 'claro'} ativado.`, 'info');
   };
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
     const name = document.getElementById('settingUserName').value.trim();
-    const email = document.getElementById('settingUserEmail').value.trim();
+
+    if (window.SaldoCertoProfile) {
+      const updated = await SaldoCertoProfile.updateProfile({ full_name: name });
+      if (updated) {
+        updateAvatarDisplay(name);
+        SaldoCerto.showToast('Perfil atualizado com sucesso no Supabase!', 'success');
+        return;
+      }
+    }
 
     const state = SaldoCerto.getState();
     state.settings = state.settings || {};
     state.settings.userName = name;
-    state.settings.userEmail = email;
-
     SaldoCerto.saveData();
     updateAvatarDisplay(name);
     SaldoCerto.showToast('Perfil atualizado com sucesso!', 'success');
@@ -122,20 +142,37 @@ const ConfiguracoesModule = (() => {
 
   const handleClearAllData = () => {
     SaldoCerto.confirmAction(
-      'ATENÇÃO: Tem certeza que deseja apagar todos os dados financeiros? Essa ação é irreversível e restaurará os dados de fábrica.',
+      'ATENÇÃO: Deseja limpar os dados locais do dispositivo? Suas preferências locais de tema e cache serão restauradas.',
       () => {
         localStorage.removeItem(STORAGE_KEY);
-        SaldoCerto.showToast('Todos os dados foram resetados. Reiniciando...', 'info');
-        setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 1200);
+        SaldoCerto.showToast('Dados locais resetados com sucesso.', 'info');
       }
     );
   };
 
-  const init = () => {
+  const handleLogout = async () => {
+    if (window.SaldoCertoAuth) {
+      await SaldoCertoAuth.signOut();
+    } else {
+      window.location.href = 'index.html';
+    }
+  };
+
+  const init = async () => {
     SaldoCerto.initShell('configuracoes');
-    loadSettingsIntoForm();
+    if (window.SaldoCertoAuth) {
+      await SaldoCertoAuth.requireAuth();
+    }
+    await loadSettingsIntoForm();
+
+    // Vincula botão de logout se existir
+    const logoutBtn = document.querySelector('a[href="index.html"]');
+    if (logoutBtn && logoutBtn.textContent.includes('Sair')) {
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        handleLogout();
+      });
+    }
   };
 
   return {
@@ -145,7 +182,8 @@ const ConfiguracoesModule = (() => {
     handleSavePreferences,
     exportJSON,
     importJSON,
-    handleClearAllData
+    handleClearAllData,
+    handleLogout
   };
 })();
 
