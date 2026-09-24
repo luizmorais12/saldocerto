@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaldoCerto — Seu dinheiro no controle | Gestão Financeira Pessoal</title>
+  <meta name="description" content="Organize suas receitas, despesas, cartões, metas e investimentos em um único lugar. O app financeiro definitivo para o seu controle patrimonial.">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  
+  <!-- CSS Global, Dashboard e Responsividade -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <!-- Lucide Icons via CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Estilos específicos da Landing Page */
+    .landing-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-border);
+      transition: background-color var(--transition-normal);
+    }
+    [data-theme="dark"] .landing-header {
+      background-color: rgba(11, 17, 32, 0.85);
+    }
+    .landing-nav-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 var(--space-6);
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .landing-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      text-decoration: none;
+    }
+    .landing-logo img {
+      height: 42px;
+      width: auto;
+    }
+    .landing-nav-links {
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+    }
+    .landing-nav-link {
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      transition: color var(--transition-fast);
+    }
+    .landing-nav-link:hover {
+      color: var(--color-primary);
+    }
+    .landing-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    /* Hero Section */
+    .hero-section {
+      position: relative;
+      padding: var(--space-16) var(--space-6) var(--space-12);
+      max-width: 1240px;
+      margin: 0 auto;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0.35rem 1rem;
+      border-radius: var(--radius-full);
+      background-color: var(--color-primary-light);
+      color: var(--color-primary-dark);
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      margin-bottom: var(--space-6);
+      box-shadow: var(--shadow-sm);
+    }
+    .hero-title {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: var(--space-6);
+      color: var(--color-text);
+    }
+    .hero-title .highlight {
+      background: linear-gradient(135deg, var(--color-primary) 0%, #10B981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: clamp(1.125rem, 2vw, 1.25rem);
+      color: var(--color-text-secondary);
+      max-width: 720px;
+      margin: 0 auto var(--space-8);
+      line-height: 1.6;
+    }
+    .hero-cta-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-10);
+    }
+    .hero-trust-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-6);
+      color: var(--color-text-muted);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      flex-wrap: wrap;
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    /* Dashboard Preview Container */
+    .dashboard-preview-wrapper {
+      max-width: 1140px;
+      margin: 0 auto var(--space-16);
+      padding: 0 var(--space-6);
+    }
+    .dashboard-preview-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      box-shadow: 0 25px 50px -12px rgba(22, 163, 74, 0.15), var(--shadow-xl);
+      position: relative;
+      overflow: hidden;
+      transition: transform var(--transition-normal);
+    }
+    .preview-browser-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding-bottom: var(--space-4);
+      margin-bottom: var(--space-4);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .browser-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: var(--radius-full);
+    }
+    .dot-red { background-color: #EF4444; }
+    .dot-yellow { background-color: #F59E0B; }
+    .dot-green { background-color: #10B981; }
+    .browser-url-mock {
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-full);
+      padding: 0.2rem 1.25rem;
+      font-size: 11px;
+      color: var(--color-text-muted);
+      margin-left: var(--space-3);
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    /* Grid de Benefícios */
+    .benefits-section {
+      padding: var(--space-16) var(--space-6);
+      background-color: var(--color-bg-subtle);
+    }
+    .section-container {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+    .section-header {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto var(--space-12);
+    }
+    .section-badge {
+      text-transform: uppercase;
+      font-size: var(--font-size-xs);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: var(--color-primary);
+      margin-bottom: var(--space-2);
+      display: block;
+    }
+    .section-title {
+      font-size: var(--font-size-3xl);
+      font-weight: 800;
+      color: var(--color-text);
+      letter-spacing: -0.02em;
+      margin-bottom: var(--space-3);
+    }
+    .section-subtitle {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-base);
+    }
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: var(--space-6);
+    }
+    .benefit-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-normal);
+    }
+    .benefit-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--color-primary-light);
+    }
+    .benefit-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-lg);
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-4);
+    }
+    .benefit-title {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      margin-bottom: var(--space-2);
+      color: var(--color-text);
+    }
+    .benefit-desc {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Como Funciona */
+    .steps-section {
+      padding: var(--space-16) var(--space-6);
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-8);
+      position: relative;
+    }
+    .step-card {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .step-number {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      color: #fff;
+      font-size: var(--font-size-lg);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-4);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Planos */
+    .pricing-section {
+      padding: var(--space-16) var(--space-6);
+      background-color: var(--color-bg-subtle);
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-8);
+      align-items: stretch;
+    }
+    .pricing-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-8);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: all var(--transition-normal);
+    }
+    .pricing-card.featured {
+      border: 2px solid var(--color-primary);
+      box-shadow: 0 10px 30px rgba(22, 163, 74, 0.15);
+      transform: scale(1.03);
+    }
+    .featured-tag {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-primary);
+      color: #FFFFFF;
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      padding: 0.25rem 0.85rem;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .price-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--color-text);
+      margin: var(--space-4) 0;
+    }
+    .price-value span {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+    .pricing-features {
+      margin: var(--space-6) 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .pricing-feature-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+    .pricing-feature-item i {
+      color: var(--color-success);
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* FAQ */
+    .faq-section {
+      padding: var(--space-16) var(--space-6);
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .faq-item {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-card);
+      overflow: hidden;
+      transition: border-color var(--transition-fast);
+    }
+    .faq-item:hover {
+      border-color: var(--color-border-hover);
+    }
+    .faq-question {
+      padding: var(--space-4) var(--space-5);
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--color-text);
+      text-align: left;
+      cursor: pointer;
+    }
+    .faq-answer {
+      padding: 0 var(--space-5) var(--space-4);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+      display: none;
+    }
+    .faq-item.active .faq-answer {
+      display: block;
+    }
+    .faq-item.active .faq-icon {
+      transform: rotate(180deg);
+    }
+    .faq-icon {
+      transition: transform var(--transition-normal);
+      color: var(--color-text-muted);
+    }
+
+    /* Final CTA */
+    .cta-final-section {
+      padding: var(--space-16) var(--space-6);
+      max-width: 1240px;
+      margin: 0 auto var(--space-12);
+    }
+    .cta-final-card {
+      background: linear-gradient(135deg, #15803D 0%, #16A34A 50%, #059669 100%);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-12) var(--space-8);
+      text-align: center;
+      color: #FFFFFF;
+      box-shadow: 0 20px 40px rgba(22, 163, 74, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-final-card h2 {
+      color: #FFFFFF;
+      font-size: clamp(2rem, 4vw, 3rem);
+      margin-bottom: var(--space-4);
+    }
+    .cta-final-card p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: var(--font-size-lg);
+      max-width: 640px;
+      margin: 0 auto var(--space-8);
+    }
+
+    /* Footer */
+    .landing-footer {
+      background: var(--color-card);
+      border-top: 1px solid var(--color-border);
+      padding: var(--space-12) var(--space-6) var(--space-6);
+    }
+    .footer-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr repeat(3, 1fr);
+      gap: var(--space-8);
+      margin-bottom: var(--space-8);
+    }
+    .footer-col h5 {
+      font-size: var(--font-size-sm);
+      font-weight: 700;
+      margin-bottom: var(--space-4);
+      color: var(--color-text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .footer-links a {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      transition: color var(--transition-fast);
+    }
+    .footer-links a:hover {
+      color: var(--color-primary);
+    }
+    .footer-bottom {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      flex-wrap: wrap;
+      gap: var(--space-4);
+    }
+
+    @media (max-width: 768px) {
+      .landing-nav-links { display: none; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .footer-container { grid-template-columns: 1fr; }
+      .pricing-card.featured { transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header / Barra de Navegação -->
+  <header class="landing-header">
+    <div class="landing-nav-container">
+      <a href="index.html" class="landing-logo">
+        <img src="assets/logo.svg" alt="SaldoCerto Logo">
+      </a>
+
+      <nav class="landing-nav-links">
+        <a href="#funcionalidades" class="landing-nav-link">Funcionalidades</a>
+        <a href="#beneficios" class="landing-nav-link">Benefícios</a>
+        <a href="#como-funciona" class="landing-nav-link">Como funciona</a>
+        <a href="#planos" class="landing-nav-link">Planos</a>
+        <a href="#faq" class="landing-nav-link">FAQ</a>
+      </nav>
+
+      <div class="landing-nav-actions">
+        <!-- Alternador de Tema -->
+        <button id="themeToggleBtn" class="btn-icon" aria-label="Alternar tema claro/escuro" title="Alternar tema">
+          <i data-lucide="moon"></i>
+        </button>
+
+        <a href="dashboard.html" class="btn btn-outline">
+          <i data-lucide="log-in"></i> Entrar
+        </a>
+        <a href="dashboard.html" class="btn btn-primary">
+          Começar agora <i data-lucide="arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-badge">
+      <i data-lucide="sparkles"></i>
+      <span>A plataforma definitiva de inteligência financeira pessoal</span>
+    </div>
+
+    <h1 class="hero-title">
+      Tenha controle total do <span class="highlight">seu dinheiro.</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Organize suas receitas, despesas, cartões, metas e investimentos em um único lugar.
+      Diga adeus às planilhas complicadas e conquiste a sua liberdade financeira.
+    </p>
+
+    <div class="hero-cta-group">
+      <a href="dashboard.html" class="btn btn-primary btn-lg">
+        Começar gratuitamente <i data-lucide="arrow-right"></i>
+      </a>
+      <a href="#preview" class="btn btn-secondary btn-lg">
+        <i data-lucide="play-circle"></i> Ver demonstração
+      </a>
+    </div>
+
+    <div class="hero-trust-bar">
+      <div class="trust-item"><i data-lucide="check-circle-2" class="text-success"></i> 100% Gratuito para começar</div>
+      <div class="trust-item"><i data-lucide="shield-check" class="text-success"></i> Seus dados protegidos</div>
+      <div class="trust-item"><i data-lucide="smartphone" class="text-success"></i> Acesso em qualquer dispositivo</div>
+      <div class="trust-item"><i data-lucide="star" class="text-warning"></i> Avaliação 4.9/5 por milhares de usuários</div>
+    </div>
+  </section>
+
+  <!-- Demonstração do Dashboard Mockup Interativo -->
+  <section id="preview" class="dashboard-preview-wrapper">
+    <div class="dashboard-preview-card">
+      <div class="preview-browser-bar">
+        <span class="browser-dot dot-red"></span>
+        <span class="browser-dot dot-yellow"></span>
+        <span class="browser-dot dot-green"></span>
+        <div class="browser-url-mock">
+          <i data-lucide="lock" style="width: 12px; height: 12px;"></i> app.saldocerto.com.br/dashboard
+        </div>
+      </div>
+
+      <!-- Preview Mock UI -->
+      <div style="background: var(--color-bg); padding: var(--space-4); border-radius: var(--radius-lg);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+          <div>
+            <h4 style="font-weight: 700;">Visão Geral — Setembro 2026</h4>
+            <p style="font-size: 12px; color: var(--color-text-muted);">Bem-vindo ao seu painel financeiro em tempo real</p>
+          </div>
+          <a href="dashboard.html" class="btn btn-primary btn-sm">
+            <i data-lucide="external-link"></i> Abrir Painel Completo
+          </a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); margin-bottom: var(--space-4);">
+          <div style="background: var(--color-card); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+            <div style="font-size: 11px; color: var(--color-text-muted);">Saldo Disponível</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--color-text);">R$ 8.420,50</div>
+            <div style="font-size: 11px; color: var(--color-success); font-weight: 600;">+8,4% este mês</div>
+          </div>
+          <div style="background: var(--color-card); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+            <div style="font-size: 11px; color: var(--color-text-muted);">Receitas</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--color-success);">R$ 6.850,00</div>
+            <div style="font-size: 11px; color: var(--color-text-muted);">2 entradas registradas</div>
+          </div>
+          <div style="background: var(--color-card); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+            <div style="font-size: 11px; color: var(--color-text-muted);">Despesas</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--color-danger);">R$ 3.240,80</div>
+            <div style="font-size: 11px; color: var(--color-text-muted);">5 despesas ativas</div>
+          </div>
+          <div style="background: var(--color-card); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+            <div style="font-size: 11px; color: var(--color-text-muted);">Investimentos</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--color-info);">R$ 18.750,00</div>
+            <div style="font-size: 11px; color: var(--color-success); font-weight: 600;">+13,63% rentabilidade</div>
+          </div>
+        </div>
+
+        <div style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center; color: var(--color-text-muted); font-size: 13px;">
+          <i data-lucide="bar-chart-3" style="margin: 0 auto 6px; color: var(--color-primary);"></i>
+          Gráficos dinâmicos de fluxo financeiro, rosca de despesas e evolução patrimonial calculados em tempo real.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefícios -->
+  <section id="beneficios" class="benefits-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-badge">Por que escolher o SaldoCerto</span>
+        <h2 class="section-title">O controle que você sempre sonhou, sem complicações</h2>
+        <p class="section-subtitle">Construído para pessoas reais que buscam clareza, tranquilidade e inteligência com cada real economizado.</p>
+      </div>
+
+      <div class="benefits-grid">
+        <div class="benefit-card">
+          <div class="benefit-icon"><i data-lucide="layout-dashboard"></i></div>
+          <h3 class="benefit-title">Visão 360° em Tempo Real</h3>
+          <p class="benefit-desc">Visualize contas correntes, cartões, metas e carteira de investimentos em um dashboard unificado e elegante.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon"><i data-lucide="credit-card"></i></div>
+          <h3 class="benefit-title">Adeus Surpresas na Fatura</h3>
+          <p class="benefit-desc">Acompanhe limites comprometidos, datas de fechamento e o peso das compras parceladas nos próximos meses.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon"><i data-lucide="target"></i></div>
+          <h3 class="benefit-title">Conquiste suas Metas</h3>
+          <p class="benefit-desc">Defina objetivos claros, registre aportes e acompanhe visualmente o percentual rumo ao seu carro novo, viagem ou reserva.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon"><i data-lucide="trending-up"></i></div>
+          <h3 class="benefit-title">Multiplique seu Patrimônio</h3>
+          <p class="benefit-desc">Monitore ativos e passivos, entenda seu patrimônio líquido real e veja seus investimentos evoluírem com consistência.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Funcionalidades Completas -->
+  <section id="funcionalidades" class="steps-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-badge">Recursos Completos</span>
+        <h2 class="section-title">Tudo o que você precisa em uma única plataforma</h2>
+        <p class="section-subtitle">Ferramentas profissionais projetadas para colocar você no comando de suas finanças.</p>
+      </div>
+
+      <div class="benefits-grid">
+        <div class="benefit-card">
+          <div class="benefit-icon"><i data-lucide="arrow-down-circle"></i></div>
+          <h3 class="benefit-title">Gestão de Receitas</h3>
+          <p class="benefit-desc">Controle de salários, freelas, rendimentos e vendas com categorização instantânea e filtros por período.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon"><i data-lucide="arrow-up-circle"></i></div>
+          <h3 class="benefit-title">Controle de Despesas</h3>
+          <p class="benefit-desc">Detalhamento dos seus gastos diários por categoria, conta de débito ou cartão, com médias diárias e estatísticas.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon"><i data-lucide="landmark"></i></div>
+          <h3 class="benefit-title">Múltiplas Contas</h3>
+          <p class="benefit-desc">Nubank, Itaú, carteira física, poupança ou conta digital com suporte a transferências internas automáticas.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon"><i data-lucide="pie-chart"></i></div>
+          <h3 class="benefit-title">Relatórios & Exportação CSV</h3>
+          <p class="benefit-desc">Gráficos de fluxo de caixa, rosca de categorias e exportação dos seus dados a qualquer momento em formato compatível com Excel.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon"><i data-lucide="coins"></i></div>
+          <h3 class="benefit-title">Carteira de Investimentos</h3>
+          <p class="benefit-desc">Acompanhe Tesouro Direto, CDBs, FIIs, Ações e Cripto com cálculo automático de rentabilidade acumulada.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon"><i data-lucide="moon"></i></div>
+          <h3 class="benefit-title">Modo Escuro Nativo</h3>
+          <p class="benefit-desc">Interface moderna com alternância de tema claro/escuro de alta fidelidade para conforto visual a qualquer hora.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Como Funciona -->
+  <section id="como-funciona" class="benefits-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-badge">Simplicidade Extrema</span>
+        <h2 class="section-title">Como funciona o SaldoCerto</h2>
+        <p class="section-subtitle">Em apenas três etapas rápidas você transforma a sua relação com o dinheiro.</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h3 class="benefit-title">Cadastre suas Contas & Cartões</h3>
+          <p class="benefit-desc">Adicione suas contas bancárias e limites de cartão em segundos sem precisar fornecer senhas de banco.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h3 class="benefit-title">Registre suas Movimentações</h3>
+          <p class="benefit-desc">Lance receitas, despesas e compras parceladas de forma intuitiva pelo celular ou computador.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h3 class="benefit-title">Tome Decisões Inteligentes</h3>
+          <p class="benefit-desc">Acompanhe gráficos interativos, metas financeiras e veja seu patrimônio líquido crescer mês após mês.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Planos -->
+  <section id="planos" class="pricing-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-badge">Preços Transparentes</span>
+        <h2 class="section-title">Escolha o plano ideal para a sua jornada</h2>
+        <p class="section-subtitle">Sem letras miúdas. Comece grátis e evolua quando desejar.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Gratuito -->
+        <div class="pricing-card">
+          <div>
+            <h3 style="font-size: var(--font-size-xl); font-weight: 700;">Gratuito</h3>
+            <p style="color: var(--color-text-muted); font-size: var(--font-size-sm);">Essencial para começar a organizar sua vida financeira.</p>
+            <div class="price-value">R$ 0 <span>/ para sempre</span></div>
+            <div class="pricing-features">
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Transações ilimitadas</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Até 3 contas e 2 cartões</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Gráficos mensais de fluxo</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Até 2 metas financeiras</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Modo claro e escuro</div>
+            </div>
+          </div>
+          <a href="dashboard.html" class="btn btn-secondary w-full">Começar Grátis</a>
+        </div>
+
+        <!-- Pro (Destaque) -->
+        <div class="pricing-card featured">
+          <div class="featured-tag">Mais Escolhido</div>
+          <div>
+            <h3 style="font-size: var(--font-size-xl); font-weight: 700;">SaldoCerto Pro</h3>
+            <p style="color: var(--color-text-muted); font-size: var(--font-size-sm);">Para quem quer acelerar o crescimento do patrimônio.</p>
+            <div class="price-value">R$ 19,90 <span>/ mês</span></div>
+            <div class="pricing-features">
+              <div class="pricing-feature-item"><i data-lucide="check"></i> <strong>Tudo do plano gratuito</strong></div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Contas e cartões ilimitados</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Gestão de Investimentos & Dividendos</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Balanço Patrimonial Ativos x Dívidas</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Metas financeiras ilimitadas</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Exportação ilimitada em CSV / Excel</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Backup e restauração de dados</div>
+            </div>
+          </div>
+          <a href="dashboard.html" class="btn btn-primary w-full">Testar 14 Dias Grátis</a>
+        </div>
+
+        <!-- Familiar -->
+        <div class="pricing-card">
+          <div>
+            <h3 style="font-size: var(--font-size-xl); font-weight: 700;">Familiar / Premium</h3>
+            <p style="color: var(--color-text-muted); font-size: var(--font-size-sm);">Controle financeiro compartilhado para toda a família.</p>
+            <div class="price-value">R$ 34,90 <span>/ mês</span></div>
+            <div class="pricing-features">
+              <div class="pricing-feature-item"><i data-lucide="check"></i> <strong>Tudo do plano Pro</strong></div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Até 5 membros conectados</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Relatórios consolidados da casa</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Suporte prioritário via WhatsApp</div>
+              <div class="pricing-feature-item"><i data-lucide="check"></i> Acesso antecipado a novos recursos</div>
+            </div>
+          </div>
+          <a href="dashboard.html" class="btn btn-outline w-full">Assinar Familiar</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="faq-section">
+    <div class="section-header">
+      <span class="section-badge">Tire suas dúvidas</span>
+      <h2 class="section-title">Perguntas Frequentes</h2>
+      <p class="section-subtitle">Esclarecemos os principais pontos para você começar com total segurança.</p>
+    </div>
+
+    <div class="faq-list">
+      <div class="faq-item active">
+        <button class="faq-question">
+          <span>O SaldoCerto é gratuito?</span>
+          <i data-lucide="chevron-down" class="faq-icon"></i>
+        </button>
+        <div class="faq-answer">
+          Sim! O plano gratuito permite organizar suas receitas, despesas, contas e metas essenciais sem nenhum custo e sem necessidade de cartão de crédito.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span>Preciso conectar minha senha do banco?</span>
+          <i data-lucide="chevron-down" class="faq-icon"></i>
+        </button>
+        <div class="faq-answer">
+          Não! O SaldoCerto não solicita nem armazena nenhuma senha bancária. Você tem 100% de privacidade e controle, cadastrando suas movimentações com total tranquilidade.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span>Onde meus dados são armazenados?</span>
+          <i data-lucide="chevron-down" class="faq-icon"></i>
+        </button>
+        <div class="faq-answer">
+          Nesta versão web, todos os seus dados ficam salvos com segurança diretamente no <code>localStorage</code> do seu navegador, sem trafegar por servidores de terceiros.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span>Posso exportar meus dados para o Excel?</span>
+          <i data-lucide="chevron-down" class="faq-icon"></i>
+        </button>
+        <div class="faq-answer">
+          Sim! A plataforma conta com módulo de exportação em formato CSV padrão brasileiro, permitindo abrir seus lançamentos no Microsoft Excel, Google Planilhas ou onde desejar.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span>Funciona no smartphone e tablet?</span>
+          <i data-lucide="chevron-down" class="faq-icon"></i>
+        </button>
+        <div class="faq-answer">
+          Sim! O SaldoCerto foi construído com design totalmente responsivo, adaptando-se com fluidez em telas de qualquer tamanho.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Final -->
+  <section class="cta-final-section">
+    <div class="cta-final-card">
+      <h2>Pronto para assumir o controle do seu dinheiro?</h2>
+      <p>Junte-se a milhares de pessoas que deixaram o estresse financeiro para trás e hoje planejam seu futuro com clareza.</p>
+      <a href="dashboard.html" class="btn btn-secondary btn-lg" style="background: #FFFFFF; color: var(--color-primary-dark); font-weight: 800;">
+        Começar gratuitamente agora <i data-lucide="arrow-right"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- Rodapé -->
+  <footer class="landing-footer">
+    <div class="footer-container">
+      <div>
+        <a href="index.html" class="landing-logo" style="margin-bottom: var(--space-4);">
+          <img src="assets/logo.svg" alt="SaldoCerto Logo">
+        </a>
+        <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); max-width: 320px; margin-bottom: var(--space-4);">
+          SaldoCerto — Seu dinheiro no controle. A plataforma web definitiva para quem quer dominar suas finanças com simplicidade e inteligência.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h5>Produto</h5>
+        <div class="footer-links">
+          <a href="dashboard.html">Dashboard</a>
+          <a href="receitas.html">Receitas</a>
+          <a href="despesas.html">Despesas</a>
+          <a href="cartoes.html">Cartões</a>
+          <a href="investimentos.html">Investimentos</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h5>Recursos</h5>
+        <div class="footer-links">
+          <a href="metas.html">Metas Financeiras</a>
+          <a href="patrimonio.html">Patrimônio Líquido</a>
+          <a href="relatorios.html">Relatórios</a>
+          <a href="configuracoes.html">Configurações</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h5>Suporte & Legal</h5>
+        <div class="footer-links">
+          <a href="#faq">Perguntas Frequentes</a>
+          <a href="#">Termos de Uso</a>
+          <a href="#">Privacidade</a>
+          <a href="#">Contato</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>© 2026 SaldoCerto. Todos os direitos reservados. "Seu dinheiro no controle."</div>
+      <div style="display: flex; gap: var(--space-4);">
+        <span>Desenvolvido com padrão visual SaaS profissional</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts Interativos da Landing Page -->
+  <script>
+    // Inicialização dos ícones Lucide
+    lucide.createIcons();
+
+    // FAQ Accordion
+    document.querySelectorAll('.faq-question').forEach(button => {
+      button.addEventListener('click', () => {
+        const item = button.parentElement;
+        const isActive = item.classList.contains('active');
+        
+        // Fecha todos
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+        
+        // Abre o clicado se não estava aberto
+        if (!isActive) {
+          item.classList.add('active');
+        }
+      });
+    });
+
+    // Dark Mode Toggle na Landing Page
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const savedTheme = localStorage.getItem('saldocerto_theme') || 'light';
+    
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('saldocerto_theme', theme);
+      if (themeBtn) {
+        themeBtn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+        lucide.createIcons();
+      }
+    }
+
+    applyTheme(savedTheme);
+
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+      });
+    }
+  </script>
+</body>
+</html>
