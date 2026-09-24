@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SaldoCerto — Seu dinheiro no controle | Gestão Financeira Pessoal</title>
-  <meta name="description" content="Organize suas receitas, despesas, cartões, metas e investimentos em um único lugar. O app financeiro definitivo para o seu controle patrimonial.">
+  <title>SaldoCerto — Seu dinheiro organizado e no controle</title>
+  <meta name="description" content="Controle suas contas, cartões, despesas e investimentos em uma tela simples. Sem planilhas chatas.">
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#16A34A">
   <link rel="apple-touch-icon" href="assets/icon.svg">
   
-  <!-- CSS Global, Dashboard e Responsividade -->
+  <!-- CSS Global e Responsividade -->
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/responsive.css">
 
@@ -18,25 +18,25 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    /* Estilos específicos da Landing Page */
+    /* Estilos Limpos e Profissionais da Landing Page */
     .landing-header {
       position: sticky;
       top: 0;
       z-index: 100;
-      background-color: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background-color: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--color-border);
       transition: background-color var(--transition-normal);
     }
     [data-theme="dark"] .landing-header {
-      background-color: rgba(11, 17, 32, 0.85);
+      background-color: rgba(11, 17, 32, 0.92);
     }
     .landing-nav-container {
-      max-width: 1240px;
+      max-width: 1120px;
       margin: 0 auto;
       padding: 0 var(--space-6);
-      height: 76px;
+      height: 70px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -48,7 +48,7 @@
       text-decoration: none;
     }
     .landing-logo img {
-      height: 42px;
+      height: 36px;
       width: auto;
     }
     .landing-nav-links {
@@ -61,6 +61,7 @@
       font-weight: 500;
       color: var(--color-text-secondary);
       transition: color var(--transition-fast);
+      text-decoration: none;
     }
     .landing-nav-link:hover {
       color: var(--color-primary);
@@ -71,909 +72,648 @@
       gap: var(--space-3);
     }
 
-    /* Hero Section */
+    /* Hero Section Simples e Direto */
     .hero-section {
-      position: relative;
-      padding: var(--space-16) var(--space-6) var(--space-12);
-      max-width: 1240px;
+      padding: 72px var(--space-6) 48px;
+      max-width: 920px;
       margin: 0 auto;
       text-align: center;
-      overflow: hidden;
     }
-    .hero-badge {
+    .hero-tag {
       display: inline-flex;
       align-items: center;
-      gap: var(--space-2);
-      padding: 0.35rem 1rem;
+      gap: 6px;
+      padding: 6px 14px;
       border-radius: var(--radius-full);
-      background-color: var(--color-primary-light);
-      color: var(--color-primary-dark);
-      font-size: var(--font-size-xs);
-      font-weight: 700;
-      margin-bottom: var(--space-6);
-      box-shadow: var(--shadow-sm);
+      background: var(--color-bg-subtle);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
     }
     .hero-title {
-      font-size: clamp(2.5rem, 5vw, 4rem);
-      font-weight: 900;
-      line-height: 1.15;
+      font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.18;
       letter-spacing: -0.03em;
-      margin-bottom: var(--space-6);
+      margin-bottom: 20px;
       color: var(--color-text);
     }
-    .hero-title .highlight {
-      background: linear-gradient(135deg, var(--color-primary) 0%, #10B981 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .hero-title span {
+      color: var(--color-primary);
     }
     .hero-subtitle {
-      font-size: clamp(1.125rem, 2vw, 1.25rem);
+      font-size: clamp(1.05rem, 1.8vw, 1.2rem);
       color: var(--color-text-secondary);
-      max-width: 720px;
-      margin: 0 auto var(--space-8);
+      max-width: 640px;
+      margin: 0 auto 32px;
       line-height: 1.6;
     }
     .hero-cta-group {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: var(--space-4);
+      gap: 14px;
+      margin-bottom: 32px;
       flex-wrap: wrap;
-      margin-bottom: var(--space-10);
     }
-    .hero-trust-bar {
+    .hero-trust {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: var(--space-6);
+      gap: 20px;
+      font-size: 13px;
       color: var(--color-text-muted);
-      font-size: var(--font-size-xs);
-      font-weight: 500;
       flex-wrap: wrap;
     }
-    .trust-item {
-      display: flex;
+    .hero-trust span {
+      display: inline-flex;
       align-items: center;
-      gap: var(--space-1);
+      gap: 6px;
     }
 
-    /* Dashboard Preview Container */
-    .dashboard-preview-wrapper {
-      max-width: 1140px;
-      margin: 0 auto var(--space-16);
+    /* Preview do Produto */
+    .preview-section {
+      max-width: 1040px;
+      margin: 0 auto 80px;
       padding: 0 var(--space-6);
     }
-    .dashboard-preview-card {
+    .product-mock-card {
       background: var(--color-card);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-2xl);
-      padding: var(--space-6);
-      box-shadow: 0 25px 50px -12px rgba(22, 163, 74, 0.15), var(--shadow-xl);
-      position: relative;
+      box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.08);
       overflow: hidden;
-      transition: transform var(--transition-normal);
     }
-    .preview-browser-bar {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      padding-bottom: var(--space-4);
-      margin-bottom: var(--space-4);
+    .mock-header {
+      padding: 14px 20px;
       border-bottom: 1px solid var(--color-border);
-    }
-    .browser-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: var(--radius-full);
-    }
-    .dot-red { background-color: #EF4444; }
-    .dot-yellow { background-color: #F59E0B; }
-    .dot-green { background-color: #10B981; }
-    .browser-url-mock {
-      background: var(--color-bg-subtle);
-      border-radius: var(--radius-full);
-      padding: 0.2rem 1.25rem;
-      font-size: 11px;
-      color: var(--color-text-muted);
-      margin-left: var(--space-3);
       display: flex;
       align-items: center;
-      gap: var(--space-1);
+      justify-content: space-between;
+      background: var(--color-bg-subtle);
+    }
+    .mock-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .mock-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--color-border);
+    }
+    .mock-body {
+      padding: 24px;
+    }
+    .mock-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .mock-kpi {
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      background: var(--color-bg);
+    }
+    .mock-kpi-label {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      margin-bottom: 6px;
+    }
+    .mock-kpi-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+    .mock-list {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .mock-item {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 13px;
+    }
+    .mock-item:last-child {
+      border-bottom: none;
     }
 
-    /* Grid de Benefícios */
-    .benefits-section {
-      padding: var(--space-16) var(--space-6);
-      background-color: var(--color-bg-subtle);
-    }
-    .section-container {
-      max-width: 1240px;
+    /* Seções de Conteúdo Simples */
+    .section-wrap {
+      max-width: 1040px;
       margin: 0 auto;
+      padding: 64px var(--space-6);
     }
-    .section-header {
+    .section-head {
       text-align: center;
-      max-width: 680px;
-      margin: 0 auto var(--space-12);
+      max-width: 620px;
+      margin: 0 auto 48px;
     }
-    .section-badge {
-      text-transform: uppercase;
-      font-size: var(--font-size-xs);
+    .section-head h2 {
+      font-size: clamp(1.8rem, 3.2vw, 2.4rem);
       font-weight: 800;
-      letter-spacing: 0.08em;
-      color: var(--color-primary);
-      margin-bottom: var(--space-2);
-      display: block;
-    }
-    .section-title {
-      font-size: var(--font-size-3xl);
-      font-weight: 800;
-      color: var(--color-text);
       letter-spacing: -0.02em;
-      margin-bottom: var(--space-3);
+      margin-bottom: 12px;
+      color: var(--color-text);
     }
-    .section-subtitle {
-      color: var(--color-text-secondary);
+    .section-head p {
       font-size: var(--font-size-base);
+      color: var(--color-text-secondary);
+      line-height: 1.6;
     }
-    .benefits-grid {
+
+    /* Grade de Recursos sem poluição */
+    .features-grid-clean {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: var(--space-6);
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
     }
-    .benefit-card {
+    .feature-box {
       background: var(--color-card);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-xl);
-      padding: var(--space-6);
-      box-shadow: var(--shadow-sm);
-      transition: all var(--transition-normal);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color var(--transition-fast);
     }
-    .benefit-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-lg);
-      border-color: var(--color-primary-light);
+    .feature-box:hover {
+      border-color: var(--color-primary);
     }
-    .benefit-icon {
-      width: 52px;
-      height: 52px;
-      border-radius: var(--radius-lg);
+    .feature-box-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
       background: var(--color-primary-light);
       color: var(--color-primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: var(--space-4);
     }
-    .benefit-title {
-      font-size: var(--font-size-lg);
+    .feature-box h3 {
+      font-size: 1.1rem;
       font-weight: 700;
-      margin-bottom: var(--space-2);
       color: var(--color-text);
     }
-    .benefit-desc {
-      font-size: var(--font-size-sm);
+    .feature-box p {
+      font-size: 14px;
       color: var(--color-text-secondary);
-      line-height: 1.6;
+      line-height: 1.55;
     }
 
-    /* Como Funciona */
-    .steps-section {
-      padding: var(--space-16) var(--space-6);
-    }
-    .steps-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-8);
-      position: relative;
-    }
-    .step-card {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .step-number {
-      width: 48px;
-      height: 48px;
-      border-radius: var(--radius-full);
-      background: var(--color-primary);
-      color: #fff;
-      font-size: var(--font-size-lg);
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: var(--space-4);
-      box-shadow: var(--shadow-md);
-    }
-
-    /* Planos */
-    .pricing-section {
-      padding: var(--space-16) var(--space-6);
-      background-color: var(--color-bg-subtle);
-    }
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: var(--space-8);
-      align-items: stretch;
-    }
-    .pricing-card.single-plan {
-      max-width: 720px;
+    /* Card de Preço Único e Transparente */
+    .pricing-clean-card {
+      max-width: 580px;
       margin: 0 auto;
-      border: 2px solid var(--color-primary);
-      box-shadow: 0 15px 40px rgba(22, 163, 74, 0.15);
-      text-align: center;
-    }
-    .pricing-features-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px 24px;
-      margin: 24px 0;
-      text-align: left;
-    }
-    @media (max-width: 640px) {
-      .pricing-features-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-    .pricing-card {
       background: var(--color-card);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-xl);
-      padding: var(--space-8);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-      transition: all var(--transition-normal);
-    }
-    .pricing-card.featured {
       border: 2px solid var(--color-primary);
-      box-shadow: 0 10px 30px rgba(22, 163, 74, 0.15);
-      transform: scale(1.03);
+      border-radius: var(--radius-2xl);
+      padding: 40px 32px;
+      text-align: center;
+      box-shadow: 0 15px 35px -10px rgba(22, 163, 74, 0.15);
     }
-    .featured-tag {
-      position: absolute;
-      top: -14px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--color-primary);
-      color: #FFFFFF;
-      font-size: var(--font-size-xs);
-      font-weight: 700;
-      padding: 0.25rem 0.85rem;
-      border-radius: var(--radius-full);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    .pricing-clean-price {
+      margin: 20px 0;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 6px;
     }
-    .price-value {
-      font-size: 2.5rem;
-      font-weight: 800;
+    .pricing-clean-price .amount {
+      font-size: 3.2rem;
+      font-weight: 900;
       color: var(--color-text);
-      margin: var(--space-4) 0;
+      line-height: 1;
     }
-    .price-value span {
-      font-size: var(--font-size-sm);
+    .pricing-clean-price .period {
+      font-size: 1.1rem;
       color: var(--color-text-muted);
       font-weight: 500;
     }
-    .pricing-features {
-      margin: var(--space-6) 0;
+    .pricing-checklist {
+      text-align: left;
+      margin: 28px 0 32px;
       display: flex;
       flex-direction: column;
-      gap: var(--space-3);
+      gap: 12px;
     }
-    .pricing-feature-item {
+    .checklist-row {
       display: flex;
       align-items: center;
-      gap: var(--space-2);
-      font-size: var(--font-size-sm);
+      gap: 10px;
+      font-size: 14px;
       color: var(--color-text-secondary);
     }
-    .pricing-feature-item i {
-      color: var(--color-success);
+    .checklist-row i {
+      color: var(--color-primary);
       width: 18px;
       height: 18px;
       flex-shrink: 0;
     }
 
-    /* FAQ */
-    .faq-section {
-      padding: var(--space-16) var(--space-6);
-      max-width: 860px;
+    /* FAQ Limpo */
+    .faq-clean-wrap {
+      max-width: 680px;
       margin: 0 auto;
-    }
-    .faq-list {
       display: flex;
       flex-direction: column;
-      gap: var(--space-3);
+      gap: 12px;
     }
-    .faq-item {
+    .faq-clean-item {
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
       background: var(--color-card);
       overflow: hidden;
-      transition: border-color var(--transition-fast);
     }
-    .faq-item:hover {
-      border-color: var(--color-border-hover);
-    }
-    .faq-question {
-      padding: var(--space-4) var(--space-5);
+    .faq-clean-btn {
       width: 100%;
+      padding: 16px 20px;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text);
+      background: none;
+      border: none;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: var(--font-size-base);
-      font-weight: 600;
-      color: var(--color-text);
-      text-align: left;
       cursor: pointer;
     }
-    .faq-answer {
-      padding: 0 var(--space-5) var(--space-4);
-      font-size: var(--font-size-sm);
+    .faq-clean-body {
+      padding: 0 20px 16px;
+      font-size: 14px;
       color: var(--color-text-secondary);
       line-height: 1.6;
       display: none;
     }
-    .faq-item.active .faq-answer {
+    .faq-clean-item.active .faq-clean-body {
       display: block;
     }
-    .faq-item.active .faq-icon {
+    .faq-clean-item.active .faq-clean-btn i {
       transform: rotate(180deg);
     }
-    .faq-icon {
-      transition: transform var(--transition-normal);
+    .faq-clean-btn i {
+      transition: transform var(--transition-fast);
       color: var(--color-text-muted);
     }
 
-    /* Final CTA */
-    .cta-final-section {
-      padding: var(--space-16) var(--space-6);
-      max-width: 1240px;
-      margin: 0 auto var(--space-12);
-    }
-    .cta-final-card {
-      background: linear-gradient(135deg, #15803D 0%, #16A34A 50%, #059669 100%);
-      border-radius: var(--radius-2xl);
-      padding: var(--space-12) var(--space-8);
+    /* Rodapé Simples */
+    .simple-footer {
+      border-top: 1px solid var(--color-border);
+      padding: 32px var(--space-6);
       text-align: center;
-      color: #FFFFFF;
-      box-shadow: 0 20px 40px rgba(22, 163, 74, 0.25);
-      position: relative;
-      overflow: hidden;
-    }
-    .cta-final-card h2 {
-      color: #FFFFFF;
-      font-size: clamp(2rem, 4vw, 3rem);
-      margin-bottom: var(--space-4);
-    }
-    .cta-final-card p {
-      color: rgba(255, 255, 255, 0.9);
-      font-size: var(--font-size-lg);
-      max-width: 640px;
-      margin: 0 auto var(--space-8);
-    }
-
-    /* Footer */
-    .landing-footer {
-      background: var(--color-card);
-      border-top: 1px solid var(--color-border);
-      padding: var(--space-12) var(--space-6) var(--space-6);
-    }
-    .footer-container {
-      max-width: 1240px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 2fr repeat(3, 1fr);
-      gap: var(--space-8);
-      margin-bottom: var(--space-8);
-    }
-    .footer-col h5 {
-      font-size: var(--font-size-sm);
-      font-weight: 700;
-      margin-bottom: var(--space-4);
-      color: var(--color-text);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .footer-links {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-    }
-    .footer-links a {
-      font-size: var(--font-size-sm);
+      font-size: 13px;
       color: var(--color-text-muted);
-      transition: color var(--transition-fast);
+      background: var(--color-bg);
     }
-    .footer-links a:hover {
+    .simple-footer a {
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      margin: 0 10px;
+    }
+    .simple-footer a:hover {
       color: var(--color-primary);
-    }
-    .footer-bottom {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding-top: var(--space-6);
-      border-top: 1px solid var(--color-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: var(--font-size-xs);
-      color: var(--color-text-muted);
-      flex-wrap: wrap;
-      gap: var(--space-4);
     }
 
     @media (max-width: 768px) {
       .landing-nav-links { display: none; }
-      .steps-grid { grid-template-columns: 1fr; }
-      .footer-container { grid-template-columns: 1fr; }
-      .pricing-card.featured { transform: none; }
-      .landing-nav-container { padding: 0 16px; height: 64px; }
-      .landing-logo img { height: 34px; }
-      .landing-nav-actions { gap: 8px; }
-      .landing-nav-actions .btn { padding: 6px 12px; font-size: 13px; }
-    }
-    @media (max-width: 480px) {
-      .hero-cta-group { flex-direction: column; width: 100%; gap: 10px; }
+      .hero-section { padding: 48px var(--space-4) 32px; }
+      .pricing-clean-card { padding: 28px 20px; }
+      .pricing-clean-price .amount { font-size: 2.5rem; }
+      .hero-cta-group { flex-direction: column; width: 100%; }
       .hero-cta-group .btn { width: 100%; justify-content: center; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Header / Barra de Navegação -->
+  <!-- Topo / Barra de Navegação -->
   <header class="landing-header">
     <div class="landing-nav-container">
       <a href="index.html" class="landing-logo">
-        <img src="assets/logo.svg" alt="SaldoCerto Logo">
+        <img src="assets/logo.svg" alt="SaldoCerto">
       </a>
 
       <nav class="landing-nav-links">
-        <a href="#funcionalidades" class="landing-nav-link">Funcionalidades</a>
-        <a href="#beneficios" class="landing-nav-link">Benefícios</a>
         <a href="#como-funciona" class="landing-nav-link">Como funciona</a>
-        <a href="#planos" class="landing-nav-link">Planos</a>
-        <a href="#faq" class="landing-nav-link">FAQ</a>
+        <a href="#recursos" class="landing-nav-link">Recursos</a>
+        <a href="#preco" class="landing-nav-link">Preço</a>
+        <a href="#duvidas" class="landing-nav-link">Dúvidas</a>
       </nav>
 
       <div class="landing-nav-actions">
         <!-- Alternador de Tema -->
-        <button id="themeToggleBtn" class="btn-icon" aria-label="Alternar tema claro/escuro" title="Alternar tema">
+        <button id="themeToggleBtn" class="btn-icon" aria-label="Alternar tema" title="Alternar tema">
           <i data-lucide="moon"></i>
         </button>
 
-        <a href="login.html" class="btn btn-outline">
-          <i data-lucide="log-in"></i> Entrar
+        <a href="login.html" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">
+          Entrar
         </a>
-        <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-          <i data-lucide="zap"></i> Assinar por R$ 19,90
+        <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">
+          Assinar por R$ 19,90
         </a>
       </div>
     </div>
   </header>
 
   <!-- Hero Section -->
-  <section class="hero-section">
-    <div class="hero-badge">
-      <i data-lucide="sparkles"></i>
-      <span>A plataforma definitiva de inteligência financeira pessoal</span>
-    </div>
-
-    <h1 class="hero-title">
-      Tenha controle total do <span class="highlight">seu dinheiro.</span>
-    </h1>
-
-    <p class="hero-subtitle">
-      Organize suas receitas, despesas, cartões, metas e investimentos em um único lugar.
-      Diga adeus às planilhas complicadas e conquiste a sua liberdade financeira.
-    </p>
-
-    <div class="hero-cta-group">
-      <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg">
-        Assinar por R$ 19,90/mês <i data-lucide="arrow-right"></i>
-      </a>
-      <a href="#planos" class="btn btn-secondary btn-lg">
-        <i data-lucide="sparkles"></i> Ver detalhes do plano
-      </a>
-    </div>
-
-    <div class="hero-trust-bar">
-      <div class="trust-item"><i data-lucide="check-circle-2" class="text-success"></i> Apenas R$ 19,90/mês</div>
-      <div class="trust-item"><i data-lucide="shield-check" class="text-success"></i> Checkout 100% seguro via Kiwify</div>
-      <div class="trust-item"><i data-lucide="smartphone" class="text-success"></i> Acesso em celular e computador</div>
-      <div class="trust-item"><i data-lucide="lock" class="text-success"></i> Sem fidelidade — cancele quando quiser</div>
-    </div>
-  </section>
-
-  <!-- Demonstração do Dashboard Mockup Interativo -->
-  <section id="preview" class="dashboard-preview-wrapper">
-    <div class="dashboard-preview-card">
-      <div class="preview-browser-bar">
-        <span class="browser-dot dot-red"></span>
-        <span class="browser-dot dot-yellow"></span>
-        <span class="browser-dot dot-green"></span>
-        <div class="browser-url-mock">
-          <i data-lucide="lock" style="width: 12px; height: 12px;"></i> app.saldocerto.com.br/dashboard
-        </div>
+  <main>
+    <section class="hero-section">
+      <div class="hero-tag">
+        <i data-lucide="shield-check" style="width: 16px; height: 16px; color: var(--color-primary);"></i>
+        Controle financeiro simples e sem complicação
       </div>
 
-      <!-- Preview Mock UI -->
-      <div style="background: var(--color-bg); padding: var(--space-4); border-radius: var(--radius-lg);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-          <div>
-            <h4 style="font-weight: 700;">Visão Geral — Setembro 2026</h4>
-            <p style="font-size: 12px; color: var(--color-text-muted);">Bem-vindo ao seu painel financeiro em tempo real</p>
+      <h1 class="hero-title">
+        Seu dinheiro organizado.<br>
+        <span>Sem planilhas chatas.</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        O SaldoCerto junta suas contas, faturas de cartão, gastos diários e metas em um só lugar. Fácil de atualizar pelo celular ou computador.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg" style="font-weight: 700;">
+          Assinar por R$ 19,90/mês <i data-lucide="arrow-right"></i>
+        </a>
+        <a href="#como-funciona" class="btn btn-secondary btn-lg">
+          Ver como funciona
+        </a>
+      </div>
+
+      <div class="hero-trust">
+        <span><i data-lucide="check" style="width: 15px; height: 15px; color: var(--color-primary);"></i> Sem fidelidade</span>
+        <span><i data-lucide="check" style="width: 15px; height: 15px; color: var(--color-primary);"></i> Liberação imediata</span>
+        <span><i data-lucide="check" style="width: 15px; height: 15px; color: var(--color-primary);"></i> Pagamento seguro via Kiwify</span>
+      </div>
+    </section>
+
+    <!-- Preview Real do Aplicativo -->
+    <section id="como-funciona" class="preview-section">
+      <div class="product-mock-card">
+        <div class="mock-header">
+          <div class="mock-dots">
+            <span class="mock-dot"></span>
+            <span class="mock-dot"></span>
+            <span class="mock-dot"></span>
           </div>
-          <a href="dashboard.html" class="btn btn-primary btn-sm">
-            <i data-lucide="external-link"></i> Abrir Painel Completo
+          <span style="font-size: 12px; color: var(--color-text-muted); font-weight: 500;">Visão Geral do Painel</span>
+          <a href="login.html" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 4px 10px;">
+            Acessar conta
           </a>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); margin-bottom: var(--space-4);">
-          <div style="background: var(--color-card); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
-            <div style="font-size: 11px; color: var(--color-text-muted);">Saldo Disponível</div>
-            <div style="font-size: 20px; font-weight: 800; color: var(--color-text);">R$ 8.420,50</div>
-            <div style="font-size: 11px; color: var(--color-success); font-weight: 600;">+8,4% este mês</div>
-          </div>
-          <div style="background: var(--color-card); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
-            <div style="font-size: 11px; color: var(--color-text-muted);">Receitas</div>
-            <div style="font-size: 20px; font-weight: 800; color: var(--color-success);">R$ 6.850,00</div>
-            <div style="font-size: 11px; color: var(--color-text-muted);">2 entradas registradas</div>
-          </div>
-          <div style="background: var(--color-card); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
-            <div style="font-size: 11px; color: var(--color-text-muted);">Despesas</div>
-            <div style="font-size: 20px; font-weight: 800; color: var(--color-danger);">R$ 3.240,80</div>
-            <div style="font-size: 11px; color: var(--color-text-muted);">5 despesas ativas</div>
-          </div>
-          <div style="background: var(--color-card); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
-            <div style="font-size: 11px; color: var(--color-text-muted);">Investimentos</div>
-            <div style="font-size: 20px; font-weight: 800; color: var(--color-info);">R$ 18.750,00</div>
-            <div style="font-size: 11px; color: var(--color-success); font-weight: 600;">+13,63% rentabilidade</div>
-          </div>
-        </div>
-
-        <div style="background: var(--color-card); padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: center; color: var(--color-text-muted); font-size: 13px;">
-          <i data-lucide="bar-chart-3" style="margin: 0 auto 6px; color: var(--color-primary);"></i>
-          Gráficos dinâmicos de fluxo financeiro, rosca de despesas e evolução patrimonial calculados em tempo real.
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Benefícios -->
-  <section id="beneficios" class="benefits-section">
-    <div class="section-container">
-      <div class="section-header">
-        <span class="section-badge">Por que escolher o SaldoCerto</span>
-        <h2 class="section-title">O controle que você sempre sonhou, sem complicações</h2>
-        <p class="section-subtitle">Construído para pessoas reais que buscam clareza, tranquilidade e inteligência com cada real economizado.</p>
-      </div>
-
-      <div class="benefits-grid">
-        <div class="benefit-card">
-          <div class="benefit-icon"><i data-lucide="layout-dashboard"></i></div>
-          <h3 class="benefit-title">Visão 360° em Tempo Real</h3>
-          <p class="benefit-desc">Visualize contas correntes, cartões, metas e carteira de investimentos em um dashboard unificado e elegante.</p>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon"><i data-lucide="credit-card"></i></div>
-          <h3 class="benefit-title">Adeus Surpresas na Fatura</h3>
-          <p class="benefit-desc">Acompanhe limites comprometidos, datas de fechamento e o peso das compras parceladas nos próximos meses.</p>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon"><i data-lucide="target"></i></div>
-          <h3 class="benefit-title">Conquiste suas Metas</h3>
-          <p class="benefit-desc">Defina objetivos claros, registre aportes e acompanhe visualmente o percentual rumo ao seu carro novo, viagem ou reserva.</p>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon"><i data-lucide="trending-up"></i></div>
-          <h3 class="benefit-title">Multiplique seu Patrimônio</h3>
-          <p class="benefit-desc">Monitore ativos e passivos, entenda seu patrimônio líquido real e veja seus investimentos evoluírem com consistência.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Funcionalidades Completas -->
-  <section id="funcionalidades" class="steps-section">
-    <div class="section-container">
-      <div class="section-header">
-        <span class="section-badge">Recursos Completos</span>
-        <h2 class="section-title">Tudo o que você precisa em uma única plataforma</h2>
-        <p class="section-subtitle">Ferramentas profissionais projetadas para colocar você no comando de suas finanças.</p>
-      </div>
-
-      <div class="benefits-grid">
-        <div class="benefit-card">
-          <div class="benefit-icon"><i data-lucide="arrow-down-circle"></i></div>
-          <h3 class="benefit-title">Gestão de Receitas</h3>
-          <p class="benefit-desc">Controle de salários, freelas, rendimentos e vendas com categorização instantânea e filtros por período.</p>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon"><i data-lucide="arrow-up-circle"></i></div>
-          <h3 class="benefit-title">Controle de Despesas</h3>
-          <p class="benefit-desc">Detalhamento dos seus gastos diários por categoria, conta de débito ou cartão, com médias diárias e estatísticas.</p>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon"><i data-lucide="landmark"></i></div>
-          <h3 class="benefit-title">Múltiplas Contas</h3>
-          <p class="benefit-desc">Nubank, Itaú, carteira física, poupança ou conta digital com suporte a transferências internas automáticas.</p>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon"><i data-lucide="pie-chart"></i></div>
-          <h3 class="benefit-title">Relatórios & Exportação CSV</h3>
-          <p class="benefit-desc">Gráficos de fluxo de caixa, rosca de categorias e exportação dos seus dados a qualquer momento em formato compatível com Excel.</p>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon"><i data-lucide="coins"></i></div>
-          <h3 class="benefit-title">Carteira de Investimentos</h3>
-          <p class="benefit-desc">Acompanhe Tesouro Direto, CDBs, FIIs, Ações e Cripto com cálculo automático de rentabilidade acumulada.</p>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon"><i data-lucide="moon"></i></div>
-          <h3 class="benefit-title">Modo Escuro Nativo</h3>
-          <p class="benefit-desc">Interface moderna com alternância de tema claro/escuro de alta fidelidade para conforto visual a qualquer hora.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Como Funciona -->
-  <section id="como-funciona" class="benefits-section">
-    <div class="section-container">
-      <div class="section-header">
-        <span class="section-badge">Simplicidade Extrema</span>
-        <h2 class="section-title">Como funciona o SaldoCerto</h2>
-        <p class="section-subtitle">Em apenas três etapas rápidas você transforma a sua relação com o dinheiro.</p>
-      </div>
-
-      <div class="steps-grid">
-        <div class="step-card">
-          <div class="step-number">1</div>
-          <h3 class="benefit-title">Cadastre suas Contas & Cartões</h3>
-          <p class="benefit-desc">Adicione suas contas bancárias e limites de cartão em segundos sem precisar fornecer senhas de banco.</p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-number">2</div>
-          <h3 class="benefit-title">Registre suas Movimentações</h3>
-          <p class="benefit-desc">Lance receitas, despesas e compras parceladas de forma intuitiva pelo celular ou computador.</p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-number">3</div>
-          <h3 class="benefit-title">Tome Decisões Inteligentes</h3>
-          <p class="benefit-desc">Acompanhe gráficos interativos, metas financeiras e veja seu patrimônio líquido crescer mês após mês.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Planos -->
-  <section id="planos" class="pricing-section">
-    <div class="section-container">
-      <div class="section-header">
-        <span class="section-badge">Assinatura Simples & Transparente</span>
-        <h2 class="section-title">Plano Completo por apenas R$ 19,90/mês</h2>
-        <p class="section-subtitle">Sem pegadinhas, sem taxas escondidas. Tenha acesso irrestrito a todas as ferramentas do SaldoCerto.</p>
-      </div>
-
-      <div style="max-width: 760px; margin: 0 auto;">
-        <div class="pricing-card featured single-plan" style="padding: var(--space-8) var(--space-6);">
-          <div class="featured-tag">Acesso Total Ilimitado</div>
-          
-          <div>
-            <h3 style="font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-text);">SaldoCerto Premium</h3>
-            <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-top: 6px;">
-              A plataforma definitiva para organizar suas contas, eliminar dívidas e multiplicar seu patrimônio.
-            </p>
-
-            <div class="price-value" style="margin: 20px 0 8px 0; display: flex; align-items: baseline; justify-content: center; gap: 8px;">
-              <span style="font-size: 1.15rem; color: var(--color-text-muted); text-decoration: line-through; font-weight: 500;">R$ 39,90</span>
-              <span style="font-size: 3rem; font-weight: 900; color: var(--color-primary);">R$ 19,90</span>
-              <span style="font-size: 1.1rem; color: var(--color-text-muted); font-weight: 600;">/ mês</span>
+        <div class="mock-body">
+          <div class="mock-kpi-grid">
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Saldo em Contas</div>
+              <div class="mock-kpi-value" style="color: var(--color-text);">R$ 4.250,00</div>
+              <span style="font-size: 11px; color: var(--color-primary); font-weight: 600;">Disponível</span>
             </div>
-
-            <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--color-primary-light); color: var(--color-primary-dark); padding: 4px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700; margin-bottom: 24px;">
-              <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Sem carência ou fidelidade • Cancele quando quiser
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Receitas do Mês</div>
+              <div class="mock-kpi-value" style="color: var(--color-primary);">+ R$ 5.800,00</div>
+              <span style="font-size: 11px; color: var(--color-text-muted);">Salário e freelas</span>
             </div>
-
-            <div class="pricing-features-grid">
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Transações & Categorias</strong> ilimitadas</span></div>
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Contas Bancárias & Carteiras</strong> sem limites</span></div>
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Cartões de Crédito</strong> e faturas parceladas</span></div>
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Metas Financeiras</strong> com cálculo automático</span></div>
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Investimentos</strong> (Ações, FIIs, CDB, Cripto, etc.)</span></div>
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Balanço Patrimonial</strong> (Ativos x Passivos)</span></div>
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Orçamentos Mensais</strong> com a Regra 50/30/20</span></div>
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Simulador de Juros Compostos</strong> & Rumo ao Milhão</span></div>
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Importador inteligente</strong> de extratos OFX e CSV</span></div>
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Relatórios Executivos</strong> com impressão em PDF</span></div>
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>Modo Olho Mágico</strong> (Privacidade) & Tema Escuro</span></div>
-              <div class="pricing-feature-item"><i data-lucide="check" class="text-primary"></i> <span><strong>App Instalável (PWA)</strong> no Celular e Computador</span></div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Despesas do Mês</div>
+              <div class="mock-kpi-value" style="color: var(--color-danger);">- R$ 2.450,00</div>
+              <span style="font-size: 11px; color: var(--color-text-muted);">Total registrado</span>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Fatura do Cartão</div>
+              <div class="mock-kpi-value" style="color: #8A05BE;">R$ 1.120,00</div>
+              <span style="font-size: 11px; color: var(--color-text-muted);">Fecha em 5 dias</span>
             </div>
           </div>
 
-          <div style="margin-top: 16px;">
-            <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg w-full" style="padding: 16px 24px; font-size: 1.15rem; font-weight: 800; justify-content: center; box-shadow: 0 10px 30px rgba(22, 163, 74, 0.35);">
-              Assinar SaldoCerto Agora por R$ 19,90 <i data-lucide="arrow-right"></i>
-            </a>
-            
-            <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--color-text-muted); flex-wrap: wrap;">
-              <span style="display: inline-flex; align-items: center; gap: 5px;">
-                <i data-lucide="shield-check" style="width: 15px; height: 15px; color: var(--color-primary);"></i> Pagamento 100% seguro via Kiwify
-              </span>
-              <span style="display: inline-flex; align-items: center; gap: 5px;">
-                <i data-lucide="zap" style="width: 15px; height: 15px; color: var(--color-primary);"></i> Acesso imediato liberado
-              </span>
-              <span style="display: inline-flex; align-items: center; gap: 5px;">
-                <i data-lucide="credit-card" style="width: 15px; height: 15px; color: var(--color-primary);"></i> PIX e Cartão de Crédito
-              </span>
-            </div>
+          <div style="font-size: 13px; font-weight: 600; color: var(--color-text); margin-bottom: 10px;">
+            Últimas movimentações
           </div>
 
+          <div class="mock-list">
+            <div class="mock-item">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="shopping-cart" style="color: var(--color-text-muted); width: 16px; height: 16px;"></i>
+                <div>
+                  <strong>Supermercado</strong>
+                  <div style="font-size: 11px; color: var(--color-text-muted);">Alimentação • Cartão Nubank</div>
+                </div>
+              </div>
+              <strong style="color: var(--color-danger);">- R$ 240,00</strong>
+            </div>
+            <div class="mock-item">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="briefcase" style="color: var(--color-text-muted); width: 16px; height: 16px;"></i>
+                <div>
+                  <strong>Salário Mensal</strong>
+                  <div style="font-size: 11px; color: var(--color-text-muted);">Receita • Conta Principal</div>
+                </div>
+              </div>
+              <strong style="color: var(--color-primary);">+ R$ 4.500,00</strong>
+            </div>
+            <div class="mock-item">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="wifi" style="color: var(--color-text-muted); width: 16px; height: 16px;"></i>
+                <div>
+                  <strong>Internet Fibra</strong>
+                  <div style="font-size: 11px; color: var(--color-text-muted);">Moradia • Débito automático</div>
+                </div>
+              </div>
+              <strong style="color: var(--color-danger);">- R$ 129,90</strong>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- FAQ Section -->
-  <section id="faq" class="faq-section">
-    <div class="section-header">
-      <span class="section-badge">Tire suas dúvidas</span>
-      <h2 class="section-title">Perguntas Frequentes</h2>
-      <p class="section-subtitle">Esclarecemos os principais pontos para você começar com total segurança.</p>
-    </div>
-
-    <div class="faq-list">
-      <div class="faq-item active">
-        <button class="faq-question">
-          <span>Como funciona a assinatura do SaldoCerto?</span>
-          <i data-lucide="chevron-down" class="faq-icon"></i>
-        </button>
-        <div class="faq-answer">
-          O SaldoCerto funciona através de uma assinatura mensal acessível de apenas R$ 19,90 por mês, sem contratos longos ou multas. Você tem acesso completo e irrestrito a todas as funcionalidades financeiras. O pagamento é processado com total segurança pela plataforma Kiwify via PIX ou Cartão de Crédito com liberação imediata, e você pode cancelar a qualquer momento sem taxas.
-        </div>
+    <!-- Recursos Principais -->
+    <section id="recursos" class="section-wrap" style="background: var(--color-bg-subtle); border-radius: var(--radius-2xl);">
+      <div class="section-head">
+        <h2>Tudo o que você precisa no dia a dia</h2>
+        <p>Sem funções complicadas que ninguém usa. Apenas o essencial para você ter clareza total das suas contas.</p>
       </div>
 
-      <div class="faq-item">
-        <button class="faq-question">
-          <span>Preciso conectar minha senha do banco?</span>
-          <i data-lucide="chevron-down" class="faq-icon"></i>
-        </button>
-        <div class="faq-answer">
-          Não! O SaldoCerto não solicita nem armazena nenhuma senha bancária. Você tem 100% de privacidade e controle, cadastrando suas movimentações com total tranquilidade.
+      <div class="features-grid-clean">
+        <div class="feature-box">
+          <div class="feature-box-icon"><i data-lucide="arrow-left-right"></i></div>
+          <h3>Entradas e Saídas</h3>
+          <p>Anote receitas e gastos em poucos toques, organizados por categoria para saber exatamente para onde seu dinheiro foi.</p>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-box-icon"><i data-lucide="credit-card"></i></div>
+          <h3>Faturas e Cartões</h3>
+          <p>Acompanhe compras parceladas, limites disponíveis e datas de fechamento e vencimento de todos os seus cartões.</p>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-box-icon"><i data-lucide="target"></i></div>
+          <h3>Metas de Economia</h3>
+          <p>Defina o quanto quer guardar para sua reserva, viagem ou compras e acompanhe o percentual subindo a cada aporte.</p>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-box-icon"><i data-lucide="trending-up"></i></div>
+          <h3>Investimentos e Patrimônio</h3>
+          <p>Monitore saldo de investimentos (CDB, Tesouro, Ações, FIIs) e veja o balanço de ativos e dívidas em tempo real.</p>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-box-icon"><i data-lucide="upload-cloud"></i></div>
+          <h3>Importar Extratos</h3>
+          <p>Arrasta seu arquivo de extrato bancário (.OFX ou .CSV) e o sistema organiza tudo automaticamente.</p>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-box-icon"><i data-lucide="eye-off"></i></div>
+          <h3>Privacidade & Modo Escuro</h3>
+          <p>Modo "Olho Mágico" para esconder valores em lugares públicos com 1 clique, e tema escuro confortável para os olhos.</p>
         </div>
       </div>
+    </section>
 
-      <div class="faq-item">
-        <button class="faq-question">
-          <span>Onde meus dados são armazenados?</span>
-          <i data-lucide="chevron-down" class="faq-icon"></i>
-        </button>
-        <div class="faq-answer">
-          Seus dados são armazenados com segurança em banco de dados PostgreSQL gerenciado pelo Supabase com proteção Row Level Security (RLS), garantindo isolamento total onde apenas você com sua conta autenticada pode acessar suas movimentações.
-        </div>
+    <!-- Preço / Assinatura Kiwify -->
+    <section id="preco" class="section-wrap">
+      <div class="section-head">
+        <h2>Assinatura simples, preço justo</h2>
+        <p>Um valor acessível para você ter o controle da sua vida financeira o ano inteiro.</p>
       </div>
 
-      <div class="faq-item">
-        <button class="faq-question">
-          <span>Posso exportar meus dados para o Excel?</span>
-          <i data-lucide="chevron-down" class="faq-icon"></i>
-        </button>
-        <div class="faq-answer">
-          Sim! A plataforma conta com módulo de exportação em formato CSV padrão brasileiro, permitindo abrir seus lançamentos no Microsoft Excel, Google Planilhas ou onde desejar.
+      <div class="pricing-clean-card">
+        <span style="font-size: 12px; font-weight: 700; color: var(--color-primary); background: var(--color-primary-light); padding: 4px 12px; border-radius: var(--radius-full); text-transform: uppercase; letter-spacing: 0.05em;">
+          Acesso Completo
+        </span>
+
+        <div class="pricing-clean-price">
+          <span class="amount">R$ 19,90</span>
+          <span class="period">/ mês</span>
         </div>
-      </div>
 
-      <div class="faq-item">
-        <button class="faq-question">
-          <span>Funciona no smartphone e tablet?</span>
-          <i data-lucide="chevron-down" class="faq-icon"></i>
-        </button>
-        <div class="faq-answer">
-          Sim! O SaldoCerto foi construído com design totalmente responsivo, adaptando-se com fluidez em telas de qualquer tamanho, com suporte a aplicativo PWA para instalação direta na sua tela inicial.
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA Final -->
-  <section class="cta-final-section">
-    <div class="cta-final-card">
-      <h2>Pronto para assumir o controle do seu dinheiro?</h2>
-      <p>Junte-se a milhares de pessoas que deixaram o estresse financeiro para trás e hoje planejam seu futuro com clareza por apenas R$ 19,90/mês.</p>
-      <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-lg" style="background: #FFFFFF; color: var(--color-primary-dark); font-weight: 800;">
-        Garantir Acesso Completo por R$ 19,90/mês <i data-lucide="arrow-right"></i>
-      </a>
-    </div>
-  </section>
-
-  <!-- Rodapé -->
-  <footer class="landing-footer">
-    <div class="footer-container">
-      <div>
-        <a href="index.html" class="landing-logo" style="margin-bottom: var(--space-4);">
-          <img src="assets/logo.svg" alt="SaldoCerto Logo">
-        </a>
-        <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); max-width: 320px; margin-bottom: var(--space-4);">
-          SaldoCerto — Seu dinheiro no controle. A plataforma web definitiva para quem quer dominar suas finanças com simplicidade e inteligência.
+        <p style="font-size: 14px; color: var(--color-text-secondary); margin-bottom: 20px;">
+          Sem fidelidade. Cancele com 1 clique a qualquer momento.
         </p>
-      </div>
 
-      <div class="footer-col">
-        <h5>Produto</h5>
-        <div class="footer-links">
-          <a href="dashboard.html">Dashboard</a>
-          <a href="receitas.html">Receitas</a>
-          <a href="despesas.html">Despesas</a>
-          <a href="cartoes.html">Cartões</a>
-          <a href="investimentos.html">Investimentos</a>
+        <div class="pricing-checklist">
+          <div class="checklist-row">
+            <i data-lucide="check"></i> <span>Acesso ilimitado no celular, tablet e computador</span>
+          </div>
+          <div class="checklist-row">
+            <i data-lucide="check"></i> <span>Controle de receitas, despesas, cartões e contas</span>
+          </div>
+          <div class="checklist-row">
+            <i data-lucide="check"></i> <span>Metas financeiras e acompanhamento de investimentos</span>
+          </div>
+          <div class="checklist-row">
+            <i data-lucide="check"></i> <span>Importador de extrato bancário (OFX / CSV)</span>
+          </div>
+          <div class="checklist-row">
+            <i data-lucide="check"></i> <span>Simulador de juros compostos e relatórios em PDF</span>
+          </div>
+          <div class="checklist-row">
+            <i data-lucide="check"></i> <span>Dados sincronizados e seguros na nuvem</span>
+          </div>
+        </div>
+
+        <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg w-full" style="padding: 16px; font-size: 1.05rem; font-weight: 700; justify-content: center;">
+          Assinar por R$ 19,90/mês <i data-lucide="arrow-right"></i>
+        </a>
+
+        <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--color-primary);"></i>
+          Checkout seguro Kiwify • PIX e Cartão
         </div>
       </div>
+    </section>
 
-      <div class="footer-col">
-        <h5>Recursos</h5>
-        <div class="footer-links">
-          <a href="metas.html">Metas Financeiras</a>
-          <a href="patrimonio.html">Patrimônio Líquido</a>
-          <a href="relatorios.html">Relatórios</a>
-          <a href="configuracoes.html">Configurações</a>
-        </div>
+    <!-- Perguntas Frequentes -->
+    <section id="duvidas" class="section-wrap" style="padding-top: 0;">
+      <div class="section-head" style="margin-bottom: 32px;">
+        <h2>Dúvidas frequentes</h2>
       </div>
 
-      <div class="footer-col">
-        <h5>Suporte & Legal</h5>
-        <div class="footer-links">
-          <a href="#faq">Perguntas Frequentes</a>
-          <a href="#">Termos de Uso</a>
-          <a href="#">Privacidade</a>
-          <a href="#">Contato</a>
+      <div class="faq-clean-wrap">
+        <div class="faq-clean-item active">
+          <button class="faq-clean-btn">
+            <span>Como funciona a assinatura?</span>
+            <i data-lucide="chevron-down"></i>
+          </button>
+          <div class="faq-clean-body">
+            É uma assinatura mensal de R$ 19,90 processada pela Kiwify. Assim que o pagamento for confirmado (no PIX é imediato), você cria sua conta no SaldoCerto e já tem acesso liberado a todas as ferramentas.
+          </div>
+        </div>
+
+        <div class="faq-clean-item">
+          <button class="faq-clean-btn">
+            <span>Vocês pedem senha do meu banco?</span>
+            <i data-lucide="chevron-down"></i>
+          </button>
+          <div class="faq-clean-body">
+            Não! Nunca solicitamos sua senha bancária. Você tem total controle e privacidade para lançar seus gastos manualmente ou importar extratos OFX/CSV que você mesmo baixa do seu internet banking.
+          </div>
+        </div>
+
+        <div class="faq-clean-item">
+          <button class="faq-clean-btn">
+            <span>Posso usar no celular?</span>
+            <i data-lucide="chevron-down"></i>
+          </button>
+          <div class="faq-clean-body">
+            Sim! O SaldoCerto funciona em qualquer celular (Android ou iPhone) e você pode até instalá-lo direto na tela inicial como um aplicativo (PWA).
+          </div>
+        </div>
+
+        <div class="faq-clean-item">
+          <button class="faq-clean-btn">
+            <span>Como posso cancelar se eu não gostar?</span>
+            <i data-lucide="chevron-down"></i>
+          </button>
+          <div class="faq-clean-body">
+            Você pode cancelar sua assinatura a qualquer momento com apenas 1 clique pelo link recebido da Kiwify ou no seu e-mail, sem burocracia ou multas.
+          </div>
         </div>
       </div>
+    </section>
+  </main>
+
+  <!-- Rodapé Simples -->
+  <footer class="simple-footer">
+    <div style="margin-bottom: 12px;">
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#recursos">Recursos</a>
+      <a href="#preco">Preço</a>
+      <a href="login.html">Entrar</a>
+      <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer">Assinar Kiwify</a>
     </div>
-
-    <div class="footer-bottom">
-      <div>© 2026 SaldoCerto. Todos os direitos reservados. "Seu dinheiro no controle."</div>
-      <div style="display: flex; gap: var(--space-4);">
-        <span>Desenvolvido com padrão visual SaaS profissional</span>
-      </div>
-    </div>
+    <div>© 2026 SaldoCerto. Seu dinheiro no controle. Todos os direitos reservados.</div>
   </footer>
 
-  <!-- Scripts Interativos da Landing Page -->
+  <!-- Scripts Interativos -->
   <script>
-    // Inicialização dos ícones Lucide
     lucide.createIcons();
 
-    // FAQ Accordion
-    document.querySelectorAll('.faq-question').forEach(button => {
+    // FAQ Accordion Simples
+    document.querySelectorAll('.faq-clean-btn').forEach(button => {
       button.addEventListener('click', () => {
         const item = button.parentElement;
         const isActive = item.classList.contains('active');
-        
-        // Fecha todos
-        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
-        
-        // Abre o clicado se não estava aberto
-        if (!isActive) {
-          item.classList.add('active');
-        }
+        document.querySelectorAll('.faq-clean-item').forEach(i => i.classList.remove('active'));
+        if (!isActive) item.classList.add('active');
       });
     });
 
-    // Dark Mode Toggle na Landing Page
+    // Dark Mode Toggle
     const themeBtn = document.getElementById('themeToggleBtn');
     const savedTheme = localStorage.getItem('saldocerto_theme') || 'light';
     
@@ -991,8 +731,7 @@
     if (themeBtn) {
       themeBtn.addEventListener('click', () => {
         const current = document.documentElement.getAttribute('data-theme') || 'light';
-        const next = current === 'dark' ? 'light' : 'dark';
-        applyTheme(next);
+        applyTheme(current === 'dark' ? 'light' : 'dark');
       });
     }
   </script>
