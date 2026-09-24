@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Despesas — SaldoCerto | Gestão Financeira Pessoal</title>
+  <meta name="description" content="Gerenciamento de despesas, contas a pagar, gastos por categoria e formas de pagamento.">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-container">
+
+    <!-- Sidebar Principal -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <img src="assets/logo.svg" alt="SaldoCerto Logo">
+        </a>
+      </div>
+
+      <div class="sidebar-content">
+        <span class="sidebar-section-title">Principal</span>
+        <nav class="nav-menu">
+          <a href="dashboard.html" class="nav-item" data-page="dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Movimentações</span>
+        <nav class="nav-menu">
+          <a href="receitas.html" class="nav-item" data-page="receitas">
+            <i data-lucide="arrow-down-circle"></i>
+            <span>Receitas</span>
+          </a>
+          <a href="despesas.html" class="nav-item active" data-page="despesas">
+            <i data-lucide="arrow-up-circle"></i>
+            <span>Despesas</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Financeiro</span>
+        <nav class="nav-menu">
+          <a href="contas.html" class="nav-item" data-page="contas">
+            <i data-lucide="landmark"></i>
+            <span>Contas</span>
+          </a>
+          <a href="cartoes.html" class="nav-item" data-page="cartoes">
+            <i data-lucide="credit-card"></i>
+            <span>Cartões</span>
+          </a>
+          <a href="investimentos.html" class="nav-item" data-page="investimentos">
+            <i data-lucide="trending-up"></i>
+            <span>Investimentos</span>
+          </a>
+          <a href="patrimonio.html" class="nav-item" data-page="patrimonio">
+            <i data-lucide="pie-chart"></i>
+            <span>Patrimônio</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Planejamento</span>
+        <nav class="nav-menu">
+          <a href="metas.html" class="nav-item" data-page="metas">
+            <i data-lucide="target"></i>
+            <span>Metas</span>
+          </a>
+          <a href="relatorios.html" class="nav-item" data-page="relatorios">
+            <i data-lucide="file-bar-chart"></i>
+            <span>Relatórios</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Sistema</span>
+        <nav class="nav-menu">
+          <a href="configuracoes.html" class="nav-item" data-page="configuracoes">
+            <i data-lucide="settings"></i>
+            <span>Configurações</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar">LZ</div>
+          <div class="user-info">
+            <div class="user-name">Luiz Morais</div>
+            <div class="user-role">Minha Conta</div>
+          </div>
+          <a href="index.html" title="Sair do aplicativo" style="color: var(--color-text-muted); padding: 4px;">
+            <i data-lucide="log-out"></i>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Área Principal -->
+    <div class="main-wrapper">
+
+      <!-- Header Superior -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-toggle" aria-label="Abrir menu de navegação">
+            <i data-lucide="menu"></i>
+          </button>
+          <div class="header-greeting">
+            <div class="greeting-title">
+              Despesas & Gastos
+            </div>
+            <span class="greeting-subtitle">Controle suas saídas, faturas e pagamentos mensais.</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="month-selector">
+            <button class="month-btn btn-prev-month" aria-label="Mês anterior">
+              <i data-lucide="chevron-left"></i>
+            </button>
+            <span class="current-month-display">Setembro 2026</span>
+            <button class="month-btn btn-next-month" aria-label="Próximo mês">
+              <i data-lucide="chevron-right"></i>
+            </button>
+          </div>
+
+          <button class="btn-icon theme-toggle-btn" aria-label="Alternar tema">
+            <i data-lucide="moon"></i>
+          </button>
+
+          <button class="btn btn-primary" onclick="DespesasModule.openAddExpenseModal()">
+            <i data-lucide="plus-circle"></i>
+            <span class="btn-text">Nova despesa</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Conteúdo da Página -->
+      <main class="content-area">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Controle de Despesas</h1>
+            <p class="page-desc">Monitore onde seu dinheiro é gasto, com detalhes por categoria e forma de pagamento.</p>
+          </div>
+          <button class="btn btn-primary" onclick="DespesasModule.openAddExpenseModal()">
+            <i data-lucide="plus-circle"></i> Nova despesa
+          </button>
+        </div>
+
+        <!-- Métricas Rápidas de Despesa -->
+        <section class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Total gasto</span>
+              <div class="metric-icon-wrap icon-despesa">
+                <i data-lucide="arrow-up-circle"></i>
+              </div>
+            </div>
+            <div id="statTotalExpense" class="metric-value" style="color: var(--color-danger);">R$ 0,00</div>
+            <div class="metric-trend text-muted">No mês selecionado</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Maior categoria</span>
+              <div class="metric-icon-wrap icon-saldo">
+                <i data-lucide="pie-chart"></i>
+              </div>
+            </div>
+            <div id="statTopExpenseCategory" class="metric-value" style="font-size: var(--font-size-xl);">—</div>
+            <div class="metric-trend text-muted">Centro de custo principal</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Quantidade de saídas</span>
+              <div class="metric-icon-wrap icon-investimento">
+                <i data-lucide="hash"></i>
+              </div>
+            </div>
+            <div id="statExpenseCount" class="metric-value">0</div>
+            <div class="metric-trend text-muted">Lançamentos debitados</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Média diária</span>
+              <div class="metric-icon-wrap icon-receita">
+                <i data-lucide="calendar"></i>
+              </div>
+            </div>
+            <div id="statExpenseDailyAvg" class="metric-value">R$ 0,00</div>
+            <div class="metric-trend text-muted">Considerando 30 dias</div>
+          </div>
+        </section>
+
+        <!-- Gráfico de Despesas -->
+        <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
+          <div class="card">
+            <div class="chart-header">
+              <h3 class="card-title">Gastos por Categoria</h3>
+              <span style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Mês selecionado</span>
+            </div>
+            <div class="chart-canvas-container" style="height: 240px;">
+              <canvas id="expenseCategoryChartCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela de Despesas e Filtros -->
+        <div class="card">
+          <div class="card-header" style="flex-wrap: wrap; gap: var(--space-4);">
+            <div style="display: flex; gap: var(--space-3); flex: 1; min-width: 280px; flex-wrap: wrap;">
+              <!-- Busca Textual -->
+              <input type="text" id="expenseSearchInput" class="form-control" placeholder="Buscar despesa..." style="max-width: 240px;">
+              
+              <!-- Filtro de Categoria -->
+              <select id="expenseCategoryFilter" class="form-select" style="max-width: 170px;">
+                <option value="all">Todas as categorias</option>
+                <option value="Moradia">Moradia</option>
+                <option value="Alimentação">Alimentação</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Saúde">Saúde</option>
+                <option value="Educação">Educação</option>
+                <option value="Assinaturas">Assinaturas</option>
+                <option value="Outros">Outros</option>
+              </select>
+
+              <!-- Filtro de Forma de Pagamento -->
+              <select id="expensePaymentFilter" class="form-select" style="max-width: 180px;">
+                <option value="all">Todas as formas</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                <option value="Cartão de Débito">Cartão de Débito</option>
+                <option value="PIX">PIX</option>
+                <option value="Boleto">Boleto Bancário</option>
+                <option value="Dinheiro">Dinheiro</option>
+              </select>
+            </div>
+
+            <div class="badge badge-danger" id="expenseBadgeCount">0 despesas listadas</div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Descrição</th>
+                  <th>Categoria</th>
+                  <th>Forma de Pagamento</th>
+                  <th>Conta / Origem</th>
+                  <th>Valor</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="expensesTableBody">
+                <!-- Linhas inseridas dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/despesas.js"></script>
+</body>
+</html>
