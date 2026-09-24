@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar — SaldoCerto | Gestão Financeira Pessoal</title>
+  <meta name="description" content="Acesse sua conta SaldoCerto com segurança e acompanhe sua vida financeira em tempo real.">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+  <!-- Estilos Globais e de Autenticação -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+
+  <!-- Lucide Icons & Supabase CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="auth-page">
+
+  <!-- Cabeçalho com Logotipo e Alternador de Tema -->
+  <header class="auth-header">
+    <a href="index.html" class="auth-brand">
+      <img src="assets/logo.svg" alt="SaldoCerto">
+      <span class="auth-brand-text">Saldo<span>Certo</span></span>
+    </a>
+    <button class="btn btn-secondary btn-icon" id="themeToggleBtn" aria-label="Alternar Tema" title="Alternar Tema">
+      <i data-lucide="moon"></i>
+    </button>
+  </header>
+
+  <!-- Container Principal de Login -->
+  <main class="auth-main">
+    <div class="auth-card">
+      <h1 class="auth-title">Bem-vindo de volta 👋</h1>
+      <p class="auth-subtitle">Informe seu e-mail e senha para acessar sua conta SaldoCerto.</p>
+
+      <!-- Mensagens de Alerta / Erro -->
+      <div id="authAlert" class="auth-alert">
+        <i data-lucide="alert-circle" id="alertIcon"></i>
+        <span id="alertMessage"></span>
+      </div>
+
+      <form id="loginForm" class="auth-form" novalidate>
+        <div class="auth-field">
+          <label class="auth-label" for="loginEmail">E-mail</label>
+          <div class="auth-input-wrap">
+            <i data-lucide="mail" class="auth-input-icon"></i>
+            <input 
+              type="email" 
+              id="loginEmail" 
+              class="auth-input" 
+              placeholder="seuemail@exemplo.com" 
+              required 
+              autocomplete="email"
+            >
+          </div>
+        </div>
+
+        <div class="auth-field">
+          <div class="auth-label">
+            <label for="loginPassword">Senha</label>
+            <a href="recuperar-senha.html" class="auth-link">Esqueceu a senha?</a>
+          </div>
+          <div class="auth-input-wrap">
+            <i data-lucide="lock" class="auth-input-icon"></i>
+            <input 
+              type="password" 
+              id="loginPassword" 
+              class="auth-input" 
+              placeholder="Sua senha secreta" 
+              required 
+              autocomplete="current-password"
+            >
+            <button type="button" class="auth-toggle-pass" id="togglePassBtn" aria-label="Mostrar ou ocultar senha">
+              <i data-lucide="eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary auth-btn-submit">
+          <span>Entrar</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
+      </form>
+
+      <!-- Aviso caso o Supabase ainda esteja com credenciais de exemplo -->
+      <div id="credentialsNotice" class="auth-badge-demo" style="display:none;">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <i data-lucide="info" style="width:16px; height:16px; color:var(--color-primary);"></i>
+          <strong>Supabase ainda não configurado</strong>
+        </div>
+        <span>Para conectar seu banco real, insira sua URL e Anon Key no arquivo <code>js/supabase.js</code> ou nas configurações.</span>
+      </div>
+
+      <div class="auth-footer">
+        Não tem uma conta? <a href="cadastro.html" class="auth-link">Criar minha conta</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Inicializa Lucide Icons
+    lucide.createIcons();
+
+    // Alternador de tema dark/light
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const currentTheme = localStorage.getItem('saldocerto_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    if (themeBtn) {
+      themeBtn.innerHTML = currentTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+      lucide.createIcons();
+      themeBtn.addEventListener('click', () => {
+        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('saldocerto_theme', theme);
+        themeBtn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+        lucide.createIcons();
+      });
+    }
+
+    // Toggle de visibilidade da senha
+    const togglePassBtn = document.getElementById('togglePassBtn');
+    const passInput = document.getElementById('loginPassword');
+    if (togglePassBtn && passInput) {
+      togglePassBtn.addEventListener('click', () => {
+        const isPass = passInput.type === 'password';
+        passInput.type = isPass ? 'text' : 'password';
+        togglePassBtn.innerHTML = isPass ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+        lucide.createIcons();
+      });
+    }
+
+    // Alerta na tela
+    const showAlert = (msg, type = 'danger') => {
+      const alert = document.getElementById('authAlert');
+      const message = document.getElementById('alertMessage');
+      if (alert && message) {
+        alert.className = `auth-alert visible ${type}`;
+        message.textContent = msg;
+        lucide.createIcons();
+      }
+    };
+
+    // Redireciona para dashboard se já estiver conectado
+    SaldoCertoAuth.redirectIfAuthenticated();
+
+    // Mostra aviso amigável se credenciais ainda são as default
+    if (!window.isSupabaseConfigured()) {
+      const notice = document.getElementById('credentialsNotice');
+      if (notice) notice.style.display = 'flex';
+    }
+
+    // Formulário de Login
+    const form = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      if (!email || !password) {
+        showAlert('Preencha seu e-mail e sua senha.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Entrando...</span>';
+
+      try {
+        if (!window.isSupabaseConfigured()) {
+          // Se ainda não configurou as credenciais do Supabase, alerta amigável
+          showAlert('Configure sua URL e Publishable Key no arquivo js/supabase.js para acessar o banco Supabase.', 'info');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Entrar</span><i data-lucide="arrow-right"></i>';
+          lucide.createIcons();
+          return;
+        }
+
+        const data = await SaldoCertoAuth.signIn(email, password);
+
+        // Sucesso no login -> redireciona para dashboard
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+        window.location.href = redirect ? decodeURIComponent(redirect) : 'dashboard.html';
+
+      } catch (err) {
+        console.error('Erro de login:', err);
+        let msg = 'Erro ao realizar login. Verifique suas credenciais.';
+        if (err.message && err.message.includes('Invalid login credentials')) {
+          msg = 'E-mail ou senha incorretos. Verifique e tente novamente.';
+        } else if (err.message && err.message.includes('Email not confirmed')) {
+          msg = 'Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.';
+        } else if (err.message) {
+          msg = err.message;
+        }
+        showAlert(msg, 'danger');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Entrar</span><i data-lucide="arrow-right"></i>';
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>

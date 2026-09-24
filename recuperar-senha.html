@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar Senha — SaldoCerto | Gestão Financeira Pessoal</title>
+  <meta name="description" content="Recupere o acesso à sua conta SaldoCerto com segurança.">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+  <!-- Estilos Globais e de Autenticação -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+
+  <!-- Lucide Icons & Supabase CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="auth-page">
+
+  <!-- Cabeçalho -->
+  <header class="auth-header">
+    <a href="index.html" class="auth-brand">
+      <img src="assets/logo.svg" alt="SaldoCerto">
+      <span class="auth-brand-text">Saldo<span>Certo</span></span>
+    </a>
+    <button class="btn btn-secondary btn-icon" id="themeToggleBtn" aria-label="Alternar Tema" title="Alternar Tema">
+      <i data-lucide="moon"></i>
+    </button>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="auth-main">
+    <div class="auth-card">
+      <h1 class="auth-title" id="pageTitle">Recuperar senha 🔑</h1>
+      <p class="auth-subtitle" id="pageSubtitle">Digite seu e-mail cadastrado e enviaremos instruções para redefinir sua senha.</p>
+
+      <!-- Mensagens de Alerta / Sucesso -->
+      <div id="authAlert" class="auth-alert">
+        <i data-lucide="alert-circle" id="alertIcon"></i>
+        <span id="alertMessage"></span>
+      </div>
+
+      <!-- Formulário de Envio de Link por E-mail -->
+      <form id="requestResetForm" class="auth-form" novalidate>
+        <div class="auth-field">
+          <label class="auth-label" for="resetEmail">E-mail cadastrado</label>
+          <div class="auth-input-wrap">
+            <i data-lucide="mail" class="auth-input-icon"></i>
+            <input 
+              type="email" 
+              id="resetEmail" 
+              class="auth-input" 
+              placeholder="seuemail@exemplo.com" 
+              required 
+              autocomplete="email"
+            >
+          </div>
+        </div>
+
+        <button type="submit" id="requestSubmitBtn" class="btn btn-primary auth-btn-submit">
+          <span>Enviar link de recuperação</span>
+          <i data-lucide="send"></i>
+        </button>
+      </form>
+
+      <!-- Formulário de Nova Senha (ativado quando o link de reset é acessado) -->
+      <form id="updatePasswordForm" class="auth-form" style="display:none;" novalidate>
+        <div class="auth-field">
+          <label class="auth-label" for="newPassword">Nova senha</label>
+          <div class="auth-input-wrap">
+            <i data-lucide="lock" class="auth-input-icon"></i>
+            <input 
+              type="password" 
+              id="newPassword" 
+              class="auth-input" 
+              placeholder="Mínimo de 6 caracteres" 
+              required 
+              autocomplete="new-password"
+            >
+          </div>
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label" for="confirmNewPassword">Confirmar nova senha</label>
+          <div class="auth-input-wrap">
+            <i data-lucide="shield-check" class="auth-input-icon"></i>
+            <input 
+              type="password" 
+              id="confirmNewPassword" 
+              class="auth-input" 
+              placeholder="Repita a nova senha" 
+              required 
+              autocomplete="new-password"
+            >
+          </div>
+        </div>
+
+        <button type="submit" id="updateSubmitBtn" class="btn btn-primary auth-btn-submit">
+          <span>Salvar nova senha</span>
+          <i data-lucide="check"></i>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Lembrou da senha? <a href="login.html" class="auth-link">Voltar para o login</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Alternador de tema dark/light
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const currentTheme = localStorage.getItem('saldocerto_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    if (themeBtn) {
+      themeBtn.innerHTML = currentTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+      lucide.createIcons();
+      themeBtn.addEventListener('click', () => {
+        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('saldocerto_theme', theme);
+        themeBtn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+        lucide.createIcons();
+      });
+    }
+
+    const showAlert = (msg, type = 'danger') => {
+      const alert = document.getElementById('authAlert');
+      const message = document.getElementById('alertMessage');
+      if (alert && message) {
+        alert.className = `auth-alert visible ${type}`;
+        message.textContent = msg;
+        lucide.createIcons();
+      }
+    };
+
+    // Detecta se a URL contém token de recuperação de senha ou flag ?reset=true
+    const urlParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const isResetCallback = urlParams.get('reset') === 'true' || hashParams.get('type') === 'recovery' || window.location.hash.includes('access_token');
+
+    const requestForm = document.getElementById('requestResetForm');
+    const updateForm = document.getElementById('updatePasswordForm');
+    const pageTitle = document.getElementById('pageTitle');
+    const pageSubtitle = document.getElementById('pageSubtitle');
+
+    if (isResetCallback) {
+      pageTitle.textContent = 'Definir nova senha 🔒';
+      pageSubtitle.textContent = 'Crie uma nova senha segura para a sua conta.';
+      requestForm.style.display = 'none';
+      updateForm.style.display = 'flex';
+    }
+
+    // Formulário 1: Solicitar link de recuperação
+    requestForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('resetEmail').value.trim();
+
+      if (!email) {
+        showAlert('Por favor, informe seu e-mail cadastrado.');
+        return;
+      }
+
+      const btn = document.getElementById('requestSubmitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Enviando...</span>';
+
+      try {
+        if (!window.isSupabaseConfigured()) {
+          showAlert('Configure o Supabase em js/supabase.js para envio de e-mails reais de recuperação.', 'info');
+          btn.disabled = false;
+          btn.innerHTML = '<span>Enviar link de recuperação</span><i data-lucide="send"></i>';
+          lucide.createIcons();
+          return;
+        }
+
+        await SaldoCertoAuth.resetPassword(email);
+        showAlert('Se o e-mail estiver cadastrado, você receberá um link em instantes. Verifique sua caixa de entrada e spam.', 'success');
+        btn.innerHTML = '<span>Link enviado!</span>';
+      } catch (err) {
+        console.error('Erro ao solicitar reset:', err);
+        showAlert(err.message || 'Erro ao processar solicitação. Tente novamente.', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = '<span>Enviar link de recuperação</span><i data-lucide="send"></i>';
+        lucide.createIcons();
+      }
+    });
+
+    // Formulário 2: Atualizar senha
+    updateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+      if (!newPassword || newPassword.length < 6) {
+        showAlert('A nova senha deve ter no mínimo 6 caracteres.');
+        return;
+      }
+      if (newPassword !== confirmNewPassword) {
+        showAlert('As senhas não coincidem. Digite-as novamente.');
+        return;
+      }
+
+      const btn = document.getElementById('updateSubmitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Salvando nova senha...</span>';
+
+      try {
+        await SaldoCertoAuth.updatePassword(newPassword);
+        showAlert('Sua senha foi redefinida com sucesso! Redirecionando para o login...', 'success');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1500);
+      } catch (err) {
+        console.error('Erro ao atualizar senha:', err);
+        showAlert(err.message || 'Não foi possível redefinir a senha.', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = '<span>Salvar nova senha</span><i data-lucide="check"></i>';
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>
