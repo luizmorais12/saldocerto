@@ -749,11 +749,300 @@ const SaldoCerto = (() => {
       btn.addEventListener('click', toggleTheme);
     });
 
+    // Modo Privacidade
+    initPrivacy();
+
+    // Central de Notificações
+    initNotificationDrawer();
+
+    // Command Palette (Ctrl+K)
+    initCommandPalette();
+
+    // Registro do PWA
+    initPWA();
+
     // Injeção do Modal de Nova Transação Compartilhado
     initTransactionModal();
 
     if (window.lucide) {
       window.lucide.createIcons();
+    }
+  };
+
+  // --- Modo Privacidade (Olho Mágico) ---
+  const PRIVACY_KEY = 'saldocerto_privacy';
+
+  const initPrivacy = () => {
+    const isPrivate = localStorage.getItem(PRIVACY_KEY) === 'true';
+    if (isPrivate) {
+      document.body.classList.add('privacy-active');
+    }
+
+    // Procura botões de privacidade existentes ou injeta no header
+    const headerRight = document.querySelector('.header-right');
+    if (headerRight && !document.querySelector('.privacy-toggle-btn')) {
+      const btn = document.createElement('button');
+      btn.className = 'btn-icon privacy-toggle-btn';
+      btn.setAttribute('aria-label', 'Alternar modo privacidade');
+      btn.setAttribute('title', 'Modo Privacidade (Ocultar valores)');
+      btn.innerHTML = `<i data-lucide="${isPrivate ? 'eye-off' : 'eye'}"></i>`;
+      btn.addEventListener('click', togglePrivacy);
+      
+      // Insere antes do botão de tema ou notificação
+      headerRight.insertBefore(btn, headerRight.firstChild);
+      if (window.lucide) window.lucide.createIcons();
+    }
+  };
+
+  const togglePrivacy = () => {
+    const isNowActive = document.body.classList.toggle('privacy-active');
+    localStorage.setItem(PRIVACY_KEY, isNowActive);
+
+    document.querySelectorAll('.privacy-toggle-btn').forEach(btn => {
+      btn.innerHTML = `<i data-lucide="${isNowActive ? 'eye-off' : 'eye'}"></i>`;
+    });
+    if (window.lucide) window.lucide.createIcons();
+
+    showToast(isNowActive ? 'Modo privacidade ativado (valores ocultos).' : 'Modo privacidade desativado.', 'info');
+  };
+
+  // --- Central de Notificações Inteligente ---
+  const initNotificationDrawer = () => {
+    if (document.getElementById('notificationDrawerOverlay')) return;
+
+    const drawerHtml = `
+      <div id="notificationDrawerOverlay" class="notification-drawer-overlay">
+        <div class="notification-drawer">
+          <div class="drawer-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="bell" class="text-primary"></i>
+              <h3 style="font-size: var(--font-size-base); font-weight: 700;">Notificações & Alertas</h3>
+            </div>
+            <button class="modal-close" onclick="SaldoCerto.closeNotificationDrawer()">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <div style="padding: var(--space-2) var(--space-6); background: var(--color-bg-subtle); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); font-size: var(--font-size-xs);">
+            <span id="unreadCountBadge" style="font-weight: 600; color: var(--color-text-muted);">4 alertas recentes</span>
+            <button onclick="SaldoCerto.markAllNotificationsRead()" style="color: var(--color-primary); font-weight: 600; background: none; border: none; cursor: pointer;">
+              Marcar como lidas
+            </button>
+          </div>
+
+          <div id="notificationDrawerBody" class="drawer-body">
+            <!-- Itens de notificação inseridos dinamicamente -->
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+    // Conecta botões de notificação do header
+    document.querySelectorAll('.notification-btn').forEach(btn => {
+      btn.addEventListener('click', openNotificationDrawer);
+    });
+  };
+
+  const openNotificationDrawer = () => {
+    const overlay = document.getElementById('notificationDrawerOverlay');
+    if (!overlay) return;
+
+    renderNotificationItems();
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    if (window.lucide) window.lucide.createIcons();
+  };
+
+  const closeNotificationDrawer = () => {
+    const overlay = document.getElementById('notificationDrawerOverlay');
+    if (overlay) {
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  };
+
+  const renderNotificationItems = () => {
+    const body = document.getElementById('notificationDrawerBody');
+    if (!body) return;
+
+    const cards = state.creditCards || [];
+    const goals = state.goals || [];
+    const items = [];
+
+    // Alerta de faturas de cartão
+    cards.forEach(c => {
+      items.push({
+        type: 'warning',
+        icon: 'credit-card',
+        color: '#D97706',
+        title: `Fatura ${c.brand}`,
+        desc: `Vence dia ${c.dueDay} deste mês. Limite utilizado: ${formatCurrency(c.limit * 0.36)}.`,
+        time: 'Hoje, às 09:00'
+      });
+    });
+
+    // Alerta de metas
+    goals.forEach(g => {
+      const pct = g.targetAmount > 0 ? Math.round((g.currentAmount / g.targetAmount) * 100) : 0;
+      if (pct >= 50) {
+        items.push({
+          type: 'success',
+          icon: 'target',
+          color: '#16A34A',
+          title: `Meta ${g.name}`,
+          desc: `Você já alcançou ${pct}% do objetivo planejado (${formatCurrency(g.currentAmount)})!`,
+          time: 'Ontem'
+        });
+      }
+    });
+
+    // Dica de economia
+    items.push({
+      type: 'info',
+      icon: 'sparkles',
+      color: '#2563EB',
+      title: 'Dica Inteligente SaldoCerto',
+      desc: 'Sua taxa de economia está positiva este mês. Mantenha os aportes consistentes!',
+      time: 'Há 2 dias'
+    });
+
+    body.innerHTML = items.map(it => `
+      <div class="drawer-item">
+        <div class="drawer-item-icon" style="background: ${it.color}15; color: ${it.color};">
+          <i data-lucide="${it.icon}"></i>
+        </div>
+        <div class="drawer-item-content">
+          <h5>${it.title}</h5>
+          <p>${it.desc}</p>
+          <span class="time">${it.time}</span>
+        </div>
+      </div>
+    `).join('');
+  };
+
+  const markAllNotificationsRead = () => {
+    const dot = document.querySelector('.notification-dot');
+    if (dot) dot.style.display = 'none';
+    const badge = document.getElementById('unreadCountBadge');
+    if (badge) badge.textContent = 'Todas as notificações lidas';
+    showToast('Notificações marcadas como lidas.', 'info');
+  };
+
+  // --- Command Palette (Ctrl+K) ---
+  const initCommandPalette = () => {
+    if (document.getElementById('commandPaletteModal')) return;
+
+    const paletteHtml = `
+      <div id="commandPaletteModal" class="modal-overlay">
+        <div class="modal-dialog" style="max-width: 580px; margin-top: 10vh;">
+          <div style="padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-border); display: flex; align-items: center; gap: var(--space-3);">
+            <i data-lucide="search" style="color: var(--color-text-muted); width: 20px; height: 20px;"></i>
+            <input type="text" id="commandPaletteInput" placeholder="Digite para navegar ou executar ação... (ex: receitas, nova, modo escuro)" 
+                   style="border: none; outline: none; background: transparent; width: 100%; font-size: var(--font-size-base); color: var(--color-text);" autocomplete="off">
+            <span style="font-size: 11px; background: var(--color-bg-subtle); padding: 2px 6px; border-radius: 4px; color: var(--color-text-muted); border: 1px solid var(--color-border);">ESC</span>
+          </div>
+
+          <div id="commandPaletteList" style="max-height: 340px; overflow-y: auto; padding: var(--space-2) var(--space-3);">
+            <!-- Itens de comando -->
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', paletteHtml);
+
+    // Atalho global Ctrl+K ou Cmd+K
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openCommandPalette();
+      }
+      if (e.key === 'Escape') {
+        closeModal('commandPaletteModal');
+      }
+    });
+
+    const input = document.getElementById('commandPaletteInput');
+    if (input) {
+      input.addEventListener('input', (e) => filterCommandPalette(e.target.value));
+    }
+  };
+
+  const COMMANDS = [
+    { title: 'Dashboard Geral', icon: 'layout-dashboard', action: () => window.location.href = 'dashboard.html' },
+    { title: 'Receitas & Entradas', icon: 'arrow-down-circle', action: () => window.location.href = 'receitas.html' },
+    { title: 'Despesas & Gastos', icon: 'arrow-up-circle', action: () => window.location.href = 'despesas.html' },
+    { title: 'Contas Bancárias', icon: 'landmark', action: () => window.location.href = 'contas.html' },
+    { title: 'Cartões de Crédito', icon: 'credit-card', action: () => window.location.href = 'cartoes.html' },
+    { title: 'Metas Financeiras', icon: 'target', action: () => window.location.href = 'metas.html' },
+    { title: 'Investimentos', icon: 'trending-up', action: () => window.location.href = 'investimentos.html' },
+    { title: 'Patrimônio Líquido', icon: 'pie-chart', action: () => window.location.href = 'patrimonio.html' },
+    { title: 'Relatórios Financeiros', icon: 'file-bar-chart', action: () => window.location.href = 'relatorios.html' },
+    { title: 'Orçamentos & Teto de Gastos (50/30/20)', icon: 'calculator', action: () => window.location.href = 'orcamentos.html' },
+    { title: 'Simulador de Juros Compostos & Rumo ao Milhão', icon: 'sparkles', action: () => window.location.href = 'simulador.html' },
+    { title: 'Importar Extrato Bancário (OFX/CSV)', icon: 'upload', action: () => window.location.href = 'importar.html' },
+    { title: 'Configurações', icon: 'settings', action: () => window.location.href = 'configuracoes.html' },
+    { title: 'Nova Transação...', icon: 'plus-circle', action: () => { closeModal('commandPaletteModal'); openModal('newTransactionModal'); } },
+    { title: 'Alternar Modo Privacidade (Olho Mágico)', icon: 'eye', action: () => { closeModal('commandPaletteModal'); togglePrivacy(); } },
+    { title: 'Alternar Tema Claro / Escuro', icon: 'moon', action: () => { closeModal('commandPaletteModal'); toggleTheme(); } }
+  ];
+
+  const openCommandPalette = () => {
+    openModal('commandPaletteModal');
+    const input = document.getElementById('commandPaletteInput');
+    if (input) {
+      input.value = '';
+      setTimeout(() => input.focus(), 50);
+    }
+    renderCommandList(COMMANDS);
+  };
+
+  const filterCommandPalette = (query) => {
+    const q = (query || '').toLowerCase().trim();
+    const filtered = COMMANDS.filter(c => c.title.toLowerCase().includes(q));
+    renderCommandList(filtered);
+  };
+
+  const renderCommandList = (list) => {
+    const container = document.getElementById('commandPaletteList');
+    if (!container) return;
+
+    if (list.length === 0) {
+      container.innerHTML = `<div style="padding: 16px; text-align: center; color: var(--color-text-muted); font-size: 13px;">Nenhum comando encontrado.</div>`;
+      return;
+    }
+
+    container.innerHTML = list.map((c, i) => `
+      <div class="command-palette-item" style="padding: 10px 14px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background-color var(--transition-fast);"
+           onmouseover="this.style.backgroundColor='var(--color-bg-subtle)'" onmouseout="this.style.backgroundColor='transparent'"
+           onclick="SaldoCerto.executeCommand(${i})">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="${c.icon}" style="width: 18px; height: 18px; color: var(--color-primary);"></i>
+          <span style="font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text);">${c.title}</span>
+        </div>
+        <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: var(--color-text-muted);"></i>
+      </div>
+    `).join('');
+
+    if (window.lucide) window.lucide.createIcons();
+    window._currentPaletteList = list;
+  };
+
+  const executeCommand = (index) => {
+    const list = window._currentPaletteList || COMMANDS;
+    if (list[index] && typeof list[index].action === 'function') {
+      list[index].action();
+    }
+  };
+
+  // --- Registro do PWA Service Worker ---
+  const initPWA = () => {
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('sw.js').catch(err => {
+        console.log('PWA Service Worker offline/fallback:', err);
+      });
     }
   };
 
@@ -977,6 +1266,12 @@ const SaldoCerto = (() => {
     toggleTheme,
     setModalTxType,
     handleSaveTransaction,
+    togglePrivacy,
+    openNotificationDrawer,
+    closeNotificationDrawer,
+    markAllNotificationsRead,
+    openCommandPalette,
+    executeCommand,
     CATEGORIES
   };
 })();
