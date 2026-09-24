@@ -1,0 +1,24 @@
+# Ignorar arquivos de sistema e editores
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores / IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs e temporários
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Builds e dependências eventuais
+node_modules/
+dist/
+build/
