@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boas-vindas — SaldoCerto | Configuração Inicial</title>
+  <meta name="description" content="Configure seu perfil financeiro em poucos passos no SaldoCerto.">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+  <!-- Estilos Globais e de Autenticação -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+
+  <style>
+    .onboarding-card {
+      max-width: 640px;
+    }
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-8);
+      position: relative;
+    }
+    .step-indicator::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--color-border);
+      z-index: 1;
+      transform: translateY(-50%);
+    }
+    .step-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-card);
+      border: 2px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      color: var(--color-text-muted);
+      position: relative;
+      z-index: 2;
+      transition: all var(--transition-fast);
+    }
+    .step-dot.active {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: #FFFFFF;
+    }
+    .step-dot.completed {
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
+      color: var(--color-primary-dark);
+    }
+    .onboarding-step {
+      display: none;
+    }
+    .onboarding-step.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    .toggle-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    .toggle-option {
+      padding: var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-text);
+      transition: all var(--transition-fast);
+    }
+    .toggle-option.selected {
+      border-color: var(--color-primary);
+      background: var(--color-primary-50);
+      color: var(--color-primary-dark);
+    }
+    [data-theme="dark"] .toggle-option.selected {
+      background: rgba(22, 163, 74, 0.15);
+      color: #4ADE80;
+    }
+    .conditional-fields {
+      display: none;
+      animation: fadeIn 0.25s ease;
+      background: var(--color-bg-subtle);
+      padding: var(--space-4);
+      border-radius: var(--radius-md);
+      margin-top: var(--space-3);
+      border: 1px solid var(--color-border);
+    }
+    .step-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--space-8);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--color-border);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+
+  <!-- Lucide Icons & Supabase CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="auth-page">
+
+  <!-- Header -->
+  <header class="auth-header">
+    <a href="index.html" class="auth-brand">
+      <img src="assets/logo.svg" alt="SaldoCerto">
+      <span class="auth-brand-text">Saldo<span>Certo</span></span>
+    </a>
+    <button class="btn btn-secondary btn-icon" id="themeToggleBtn" aria-label="Alternar Tema" title="Alternar Tema">
+      <i data-lucide="moon"></i>
+    </button>
+  </header>
+
+  <!-- Onboarding Content -->
+  <main class="auth-main">
+    <div class="auth-card onboarding-card">
+
+      <!-- Indicador de Passos -->
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot1">1</div>
+        <div class="step-dot" id="dot2">2</div>
+        <div class="step-dot" id="dot3">3</div>
+      </div>
+
+      <!-- Alertas -->
+      <div id="onboardingAlert" class="auth-alert">
+        <i data-lucide="alert-circle"></i>
+        <span id="onboardingAlertMessage"></span>
+      </div>
+
+      <form id="onboardingForm" novalidate>
+
+        <!-- PASSO 1: Identificação e Renda -->
+        <div class="onboarding-step active" id="step1">
+          <h1 class="auth-title">Bem-vindo ao SaldoCerto 👋</h1>
+          <p class="auth-subtitle">Vamos configurar sua vida financeira em apenas 3 passos rápidos.</p>
+
+          <div class="auth-form">
+            <div class="auth-field">
+              <label class="auth-label" for="obName">1. Como devemos te chamar?</label>
+              <div class="auth-input-wrap">
+                <i data-lucide="user" class="auth-input-icon"></i>
+                <input type="text" id="obName" class="auth-input" placeholder="Seu nome ou apelido preferido" required>
+              </div>
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="obIncome">2. Qual é a sua renda mensal aproximada?</label>
+              <div class="auth-input-wrap">
+                <i data-lucide="dollar-sign" class="auth-input-icon"></i>
+                <input type="number" step="0.01" id="obIncome" class="auth-input" placeholder="Ex: 4500,00" required>
+              </div>
+              <span style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Soma de salários, pró-labore, freelas ou rendimentos habituais.</span>
+            </div>
+          </div>
+
+          <div class="step-actions">
+            <div></div>
+            <button type="button" class="btn btn-primary" id="btnNext1">
+              <span>Continuar</span>
+              <i data-lucide="arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- PASSO 2: Contas, Cartões e Investimentos -->
+        <div class="onboarding-step" id="step2">
+          <h2 class="auth-title">Contas e Cartões 💳</h2>
+          <p class="auth-subtitle">Conecte mentalmente seus instrumentos financeiros para começar organizado.</p>
+
+          <div class="auth-form">
+            <!-- Pergunta 3: Contas Bancárias -->
+            <div class="auth-field">
+              <label class="auth-label">3. Você possui conta bancária ativa?</label>
+              <div class="toggle-group" id="accountToggle">
+                <div class="toggle-option selected" data-value="sim">
+                  <i data-lucide="check"></i> Sim, possuo
+                </div>
+                <div class="toggle-option" data-value="nao">
+                  <i data-lucide="x"></i> Não
+                </div>
+              </div>
+
+              <div id="accountFields" class="conditional-fields" style="display:block;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:var(--space-3);">
+                  <div>
+                    <label class="auth-label" style="font-size:12px;" for="obAccountName">Banco / Instituição</label>
+                    <input type="text" id="obAccountName" class="auth-input" placeholder="Ex: Nubank, Itaú" value="Nubank">
+                  </div>
+                  <div>
+                    <label class="auth-label" style="font-size:12px;" for="obAccountBalance">Saldo Inicial (R$)</label>
+                    <input type="number" step="0.01" id="obAccountBalance" class="auth-input" placeholder="0,00" value="1000.00">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pergunta 4: Cartão de Crédito -->
+            <div class="auth-field">
+              <label class="auth-label">4. Você utiliza cartão de crédito?</label>
+              <div class="toggle-group" id="cardToggle">
+                <div class="toggle-option selected" data-value="sim">
+                  <i data-lucide="check"></i> Sim, utilizo
+                </div>
+                <div class="toggle-option" data-value="nao">
+                  <i data-lucide="x"></i> Não
+                </div>
+              </div>
+
+              <div id="cardFields" class="conditional-fields" style="display:block;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:var(--space-3);">
+                  <div>
+                    <label class="auth-label" style="font-size:12px;" for="obCardName">Nome do Cartão</label>
+                    <input type="text" id="obCardName" class="auth-input" placeholder="Ex: Nubank Platinum" value="Nubank">
+                  </div>
+                  <div>
+                    <label class="auth-label" style="font-size:12px;" for="obCardLimit">Limite Total (R$)</label>
+                    <input type="number" step="0.01" id="obCardLimit" class="auth-input" placeholder="Ex: 5000,00" value="3000.00">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pergunta 5: Investimentos -->
+            <div class="auth-field">
+              <label class="auth-label">5. Você já possui investimentos aplicados?</label>
+              <div class="toggle-group" id="investToggle">
+                <div class="toggle-option" data-value="sim">
+                  <i data-lucide="check"></i> Sim, invisto
+                </div>
+                <div class="toggle-option selected" data-value="nao">
+                  <i data-lucide="x"></i> Vou começar agora
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-actions">
+            <button type="button" class="btn btn-secondary" id="btnPrev2">
+              <i data-lucide="arrow-left"></i>
+              <span>Voltar</span>
+            </button>
+            <button type="button" class="btn btn-primary" id="btnNext2">
+              <span>Continuar</span>
+              <i data-lucide="arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- PASSO 3: Objetivos e Meta de Poupança -->
+        <div class="onboarding-step" id="step3">
+          <h2 class="auth-title">Objetivos e Metas 🎯</h2>
+          <p class="auth-subtitle">Qual é o seu foco financeiro para os próximos meses?</p>
+
+          <div class="auth-form">
+            <div class="auth-field">
+              <label class="auth-label" for="obGoal">6. Qual o seu principal objetivo agora?</label>
+              <select id="obGoal" class="auth-input">
+                <option value="Construir Reserva de Emergência">🛡️ Construir Reserva de Emergência</option>
+                <option value="Quitar Dívidas e Empréstimos">💳 Quitar Dívidas e Empréstimos</option>
+                <option value="Começar a Investir com Consistência">📈 Começar a Investir com Consistência</option>
+                <option value="Comprar Veículo Novo">🚗 Comprar Veículo Novo</option>
+                <option value="Entrada da Casa Própria">🏠 Entrada da Casa Própria</option>
+                <option value="Viagem dos Sonhos">✈️ Viagem dos Sonhos</option>
+                <option value="Conquistar a Liberdade Financeira">🚀 Conquistar a Liberdade Financeira</option>
+              </select>
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="obGoalTarget">Valor estimado para esse objetivo (R$)</label>
+              <div class="auth-input-wrap">
+                <i data-lucide="target" class="auth-input-icon"></i>
+                <input type="number" step="0.01" id="obGoalTarget" class="auth-input" placeholder="Ex: 10000,00" value="10000.00">
+              </div>
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="obSavings">7. Quanto você pretende guardar/investir por mês?</label>
+              <div class="auth-input-wrap">
+                <i data-lucide="piggy-bank" class="auth-input-icon"></i>
+                <input type="number" step="0.01" id="obSavings" class="auth-input" placeholder="Ex: 500,00" value="500.00">
+              </div>
+              <span style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Isso servirá para calibrar sua regra 50/30/20 e orçamentos recomendados.</span>
+            </div>
+          </div>
+
+          <div class="step-actions">
+            <button type="button" class="btn btn-secondary" id="btnPrev3">
+              <i data-lucide="arrow-left"></i>
+              <span>Voltar</span>
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnFinish">
+              <span>Finalizar e Acessar Dashboard</span>
+              <i data-lucide="check-circle"></i>
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/profile.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Alternador de tema dark/light
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const currentTheme = localStorage.getItem('saldocerto_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    if (themeBtn) {
+      themeBtn.innerHTML = currentTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+      lucide.createIcons();
+      themeBtn.addEventListener('click', () => {
+        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('saldocerto_theme', theme);
+        themeBtn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+        lucide.createIcons();
+      });
+    }
+
+    // Carrega dados existentes do usuário logado se houver
+    (async () => {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (user) {
+        const profile = await SaldoCertoProfile.getProfile();
+        if (profile?.full_name) {
+          document.getElementById('obName').value = profile.full_name;
+        } else if (user.user_metadata?.full_name) {
+          document.getElementById('obName').value = user.user_metadata.full_name;
+        }
+      }
+    })();
+
+    // Navegação entre passos
+    let currentStep = 1;
+    const showStep = (step) => {
+      document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
+      const activeStep = document.getElementById(`step${step}`);
+      if (activeStep) activeStep.classList.add('active');
+
+      // Atualiza dots
+      for (let i = 1; i <= 3; i++) {
+        const dot = document.getElementById(`dot${i}`);
+        if (!dot) continue;
+        dot.className = 'step-dot';
+        if (i === step) dot.classList.add('active');
+        if (i < step) dot.classList.add('completed');
+      }
+      currentStep = step;
+      lucide.createIcons();
+    };
+
+    const showAlert = (msg, type = 'danger') => {
+      const alert = document.getElementById('onboardingAlert');
+      const message = document.getElementById('onboardingAlertMessage');
+      if (alert && message) {
+        alert.className = `auth-alert visible ${type}`;
+        message.textContent = msg;
+        lucide.createIcons();
+      }
+    };
+
+    // Botões Step 1
+    document.getElementById('btnNext1').addEventListener('click', () => {
+      const name = document.getElementById('obName').value.trim();
+      const income = document.getElementById('obIncome').value;
+      if (!name) {
+        showAlert('Por favor, informe seu nome.');
+        return;
+      }
+      if (!income || Number(income) <= 0) {
+        showAlert('Por favor, informe uma renda mensal válida.');
+        return;
+      }
+      document.getElementById('onboardingAlert').className = 'auth-alert';
+      showStep(2);
+    });
+
+    // Botões Step 2
+    document.getElementById('btnPrev2').addEventListener('click', () => showStep(1));
+    document.getElementById('btnNext2').addEventListener('click', () => {
+      document.getElementById('onboardingAlert').className = 'auth-alert';
+      showStep(3);
+    });
+
+    // Botões Step 3
+    document.getElementById('btnPrev3').addEventListener('click', () => showStep(2));
+
+    // Configuração de Toggles Sim/Não
+    function setupToggle(containerId, fieldsId) {
+      const container = document.getElementById(containerId);
+      const fields = fieldsId ? document.getElementById(fieldsId) : null;
+      if (!container) return;
+
+      container.querySelectorAll('.toggle-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          container.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          if (fields) {
+            fields.style.display = opt.dataset.value === 'sim' ? 'block' : 'none';
+          }
+        });
+      });
+    }
+
+    setupToggle('accountToggle', 'accountFields');
+    setupToggle('cardToggle', 'cardFields');
+    setupToggle('investToggle', null);
+
+    // Finalizar Onboarding
+    document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById('btnFinish');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Salvando dados...</span>';
+
+      const hasAccount = document.querySelector('#accountToggle .selected')?.dataset.value === 'sim';
+      const hasCard = document.querySelector('#cardToggle .selected')?.dataset.value === 'sim';
+
+      const payload = {
+        fullName: document.getElementById('obName').value.trim(),
+        monthlyIncome: document.getElementById('obIncome').value,
+        hasAccount: hasAccount,
+        accountName: document.getElementById('obAccountName').value.trim(),
+        accountBalance: document.getElementById('obAccountBalance').value,
+        hasCard: hasCard,
+        cardName: document.getElementById('obCardName').value.trim(),
+        cardLimit: document.getElementById('obCardLimit').value,
+        financialGoal: document.getElementById('obGoal').value,
+        goalTargetAmount: document.getElementById('obGoalTarget').value,
+        monthlySavings: document.getElementById('obSavings').value
+      };
+
+      try {
+        if (window.isSupabaseConfigured()) {
+          await SaldoCertoProfile.saveOnboarding(payload);
+        } else {
+          // Salva no localStorage como fallback temporário de simulação
+          localStorage.setItem('saldocerto_onboarding_completed', 'true');
+        }
+
+        showAlert('Tudo pronto! Bem-vindo ao SaldoCerto.', 'success');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 800);
+
+      } catch (err) {
+        console.error('Erro ao salvar onboarding:', err);
+        showAlert(err.message || 'Erro ao salvar informações. Tente novamente.', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = '<span>Finalizar e Acessar Dashboard</span><i data-lucide="check-circle"></i>';
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>
