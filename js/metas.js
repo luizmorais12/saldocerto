@@ -1,20 +1,251 @@
 /**
- * SaldoCerto - Módulo de Metas Financeiras
+ * SaldoCerto - Módulo de Metas Financeiras (Supabase Integrado)
+ * CRUD completo, aportes inteligentes e cálculo de progresso com RLS.
  */
 
 const MetasModule = (() => {
-  const renderGoals = () => {
-    const state = SaldoCerto.getState();
-    const goals = state.goals || [];
+
+  /**
+   * Busca todas as metas do usuário no Supabase
+   */
+  const getGoals = async () => {
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      try {
+        const user = await SaldoCertoAuth.getCurrentUser();
+        if (!user) return [];
+
+        const { data, error } = await window.supabaseClient
+          .from('goals')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          console.error('[Metas Supabase] Erro ao buscar metas:', error);
+          return SaldoCerto.getState().goals || [];
+        }
+
+        const mapped = (data || []).map(g => ({
+          id: g.id,
+          name: g.name,
+          category: g.description || 'Objetivo',
+          targetAmount: Number(g.target_amount),
+          currentAmount: Number(g.current_amount || 0),
+          deadline: g.deadline || '',
+          color: g.color || '#16A34A',
+          icon: g.icon || 'target'
+        }));
+
+        SaldoCerto.getState().goals = mapped;
+        return mapped;
+      } catch (err) {
+        console.error('[Metas Supabase] Exceção em getGoals:', err);
+        return SaldoCerto.getState().goals || [];
+      }
+    }
+    return SaldoCerto.getState().goals || [];
+  };
+
+  /**
+   * Cria uma nova meta no Supabase
+   */
+  const createGoal = async (goalData) => {
+    const target = parseFloat(goalData.targetAmount) || 0;
+    const current = parseFloat(goalData.currentAmount) || 0;
+
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { data, error } = await window.supabaseClient
+        .from('goals')
+        .insert({
+          user_id: user.id,
+          name: goalData.name.trim(),
+          description: goalData.category || 'Objetivo',
+          target_amount: target,
+          current_amount: current,
+          deadline: goalData.deadline || null,
+          color: goalData.color || '#16A34A',
+          icon: goalData.icon || 'target'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[Metas Supabase] Erro ao criar meta:', error);
+        throw error;
+      }
+
+      const created = {
+        id: data.id,
+        name: data.name,
+        category: data.description,
+        targetAmount: Number(data.target_amount),
+        currentAmount: Number(data.current_amount),
+        deadline: data.deadline,
+        color: data.color,
+        icon: data.icon
+      };
+
+      SaldoCerto.getState().goals.push(created);
+      return created;
+    } else {
+      return SaldoCerto.addGoal(goalData);
+    }
+  };
+
+  /**
+   * Atualiza dados de uma meta existente
+   */
+  const updateGoal = async (id, goalData) => {
+    const target = parseFloat(goalData.targetAmount) || 0;
+    const current = parseFloat(goalData.currentAmount) || 0;
+
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { data, error } = await window.supabaseClient
+        .from('goals')
+        .update({
+          name: goalData.name.trim(),
+          description: goalData.category || 'Objetivo',
+          target_amount: target,
+          current_amount: current,
+          deadline: goalData.deadline || null,
+          color: goalData.color,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } else {
+      const g = (SaldoCerto.getState().goals || []).find(goal => goal.id === id);
+      if (g) {
+        g.name = goalData.name;
+        g.category = goalData.category;
+        g.targetAmount = target;
+        g.currentAmount = current;
+        g.deadline = goalData.deadline;
+        g.color = goalData.color;
+        SaldoCerto.saveData();
+      }
+      return g;
+    }
+  };
+
+  /**
+   * Exclui uma meta
+   */
+  const deleteGoal = async (id) => {
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { error } = await window.supabaseClient
+        .from('goals')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('[Metas Supabase] Erro ao deletar meta:', error);
+        throw error;
+      }
+    }
+
+    SaldoCerto.getState().goals = (SaldoCerto.getState().goals || []).filter(g => g.id !== id);
+    SaldoCerto.saveData();
+  };
+
+  /**
+   * Realiza um aporte na meta
+   */
+  const addGoalContribution = async (goalId, amount, fromAccount = '') => {
+    const val = parseFloat(amount);
+    if (isNaN(val) || val <= 0) return false;
+
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) return false;
+
+      const currentGoal = (SaldoCerto.getState().goals || []).find(g => g.id === goalId);
+      if (!currentGoal) return false;
+
+      const newCurrent = currentGoal.currentAmount + val;
+
+      // Atualiza meta
+      const { error: goalErr } = await window.supabaseClient
+        .from('goals')
+        .update({
+          current_amount: newCurrent,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', goalId)
+        .eq('user_id', user.id);
+
+      if (goalErr) {
+        console.error('[Metas Supabase] Erro ao registrar aporte na meta:', goalErr);
+        throw goalErr;
+      }
+
+      currentGoal.currentAmount = newCurrent;
+
+      // Se houver conta bancária de origem selecionada, debita dela e cria transação
+      if (fromAccount) {
+        const acc = SaldoCerto.getState().accounts.find(a => a.name === fromAccount || a.id === fromAccount);
+        if (acc) {
+          const newBal = acc.balance - val;
+          await window.supabaseClient
+            .from('accounts')
+            .update({ current_balance: newBal })
+            .eq('id', acc.id)
+            .eq('user_id', user.id);
+          acc.balance = newBal;
+
+          await window.supabaseClient
+            .from('transactions')
+            .insert({
+              user_id: user.id,
+              account_id: acc.id,
+              type: 'expense',
+              description: `Aporte na meta: ${currentGoal.name}`,
+              amount: val,
+              category: 'Investimentos',
+              payment_method: 'Transferência',
+              transaction_date: new Date().toISOString().split('T')[0]
+            });
+        }
+      }
+
+      return true;
+    } else {
+      return SaldoCerto.contributeToGoal(goalId, val, fromAccount);
+    }
+  };
+
+  /**
+   * Renderização visual das metas
+   */
+  const renderGoals = async () => {
+    const goals = await getGoals();
 
     const totalSaved = goals.reduce((sum, g) => sum + Number(g.currentAmount || 0), 0);
     const totalTarget = goals.reduce((sum, g) => sum + Number(g.targetAmount || 0), 0);
     const overallPercent = totalTarget > 0 ? ((totalSaved / totalTarget) * 100).toFixed(1) : 0;
 
-    document.getElementById('statTotalSavedGoals').textContent = SaldoCerto.formatCurrency(totalSaved);
-    document.getElementById('statTotalTargetGoals').textContent = SaldoCerto.formatCurrency(totalTarget);
-    document.getElementById('statOverallProgressPercent').textContent = `${overallPercent}%`;
-    document.getElementById('statActiveGoalsCount').textContent = goals.length;
+    const statSaved = document.getElementById('statTotalSavedGoals');
+    if (statSaved) statSaved.textContent = SaldoCerto.formatCurrency(totalSaved);
+    const statTarget = document.getElementById('statTotalTargetGoals');
+    if (statTarget) statTarget.textContent = SaldoCerto.formatCurrency(totalTarget);
+    const statPct = document.getElementById('statOverallProgressPercent');
+    if (statPct) statPct.textContent = `${overallPercent}%`;
+    const statCount = document.getElementById('statActiveGoalsCount');
+    if (statCount) statCount.textContent = goals.length;
 
     const badge = document.getElementById('goalsBadgeCount');
     if (badge) badge.textContent = `${goals.length} ${goals.length === 1 ? 'meta' : 'metas'}`;
@@ -28,7 +259,7 @@ const MetasModule = (() => {
           <div class="empty-state">
             <div class="empty-state-icon"><i data-lucide="target"></i></div>
             <h4 class="empty-state-title">Nenhuma meta cadastrada</h4>
-            <p class="empty-state-desc">Defina objetivos financeiros para motivar sua economia e acompanhar seu progresso.</p>
+            <p class="empty-state-desc">Defina objetivos financeiros para motivar sua economia e acompanhar seu progresso no Supabase.</p>
             <button class="btn btn-primary btn-sm" onclick="MetasModule.openAddGoalModal()">
               <i data-lucide="plus-circle"></i> Criar Primeira Meta
             </button>
@@ -107,106 +338,131 @@ const MetasModule = (() => {
     document.getElementById('editGoalId').value = '';
     document.getElementById('goalModalTitle').innerHTML = '<i data-lucide="target" class="text-primary"></i> Nova Meta Financeira';
     SaldoCerto.openModal('goalModal');
+    if (window.lucide) window.lucide.createIcons();
   };
 
   const openEditGoalModal = (id) => {
-    const state = SaldoCerto.getState();
-    const g = state.goals.find(goal => goal.id === id);
+    const g = (SaldoCerto.getState().goals || []).find(goal => goal.id === id);
     if (!g) return;
 
     document.getElementById('editGoalId').value = g.id;
     document.getElementById('goalName').value = g.name;
+    document.getElementById('goalCategory').value = g.category;
     document.getElementById('goalTarget').value = g.targetAmount;
     document.getElementById('goalCurrent').value = g.currentAmount;
-    document.getElementById('goalDeadline').value = g.deadline;
-    document.getElementById('goalCategory').value = g.category || 'Segurança';
+    document.getElementById('goalDeadline').value = g.deadline || '';
     document.getElementById('goalColor').value = g.color || '#16A34A';
     document.getElementById('goalModalTitle').innerHTML = '<i data-lucide="edit-3" class="text-primary"></i> Editar Meta';
 
     SaldoCerto.openModal('goalModal');
+    if (window.lucide) window.lucide.createIcons();
   };
 
-  const handleSaveGoal = (e) => {
+  const handleSaveGoal = async (e) => {
     e.preventDefault();
     const editId = document.getElementById('editGoalId').value;
     const name = document.getElementById('goalName').value.trim();
-    const targetAmount = parseFloat(document.getElementById('goalTarget').value) || 0;
-    const currentAmount = parseFloat(document.getElementById('goalCurrent').value) || 0;
+    const category = document.getElementById('goalCategory').value.trim();
+    const targetAmount = document.getElementById('goalTarget').value;
+    const currentAmount = document.getElementById('goalCurrent').value;
     const deadline = document.getElementById('goalDeadline').value;
-    const category = document.getElementById('goalCategory').value;
     const color = document.getElementById('goalColor').value;
 
-    const state = SaldoCerto.getState();
-    state.goals = state.goals || [];
-
-    if (editId) {
-      const g = state.goals.find(goal => goal.id === editId);
-      if (g) {
-        g.name = name;
-        g.targetAmount = targetAmount;
-        g.currentAmount = currentAmount;
-        g.deadline = deadline;
-        g.category = category;
-        g.color = color;
-        SaldoCerto.saveData();
-        SaldoCerto.showToast(`Meta "${g.name}" atualizada!`, 'success');
-      }
-    } else {
-      SaldoCerto.addGoal({ name, targetAmount, currentAmount, deadline, category, color });
+    if (!name || !targetAmount) {
+      SaldoCerto.showToast('Preencha os campos obrigatórios.', 'warning');
+      return;
     }
 
-    SaldoCerto.closeModal('goalModal');
-    renderGoals();
-  };
+    try {
+      if (editId) {
+        await updateGoal(editId, { name, category, targetAmount, currentAmount, deadline, color });
+        SaldoCerto.showToast(`Meta "${name}" atualizada!`, 'success');
+      } else {
+        await createGoal({ name, category, targetAmount, currentAmount, deadline, color });
+        SaldoCerto.showToast(`Meta "${name}" criada com sucesso!`, 'success');
+      }
 
-  const openContributeModal = (goalId) => {
-    const state = SaldoCerto.getState();
-    const g = state.goals.find(goal => goal.id === goalId);
-    if (!g) return;
-
-    document.getElementById('contributeGoalId').value = g.id;
-    document.getElementById('contributeGoalName').textContent = g.name;
-    document.getElementById('contributeAmount').value = '';
-
-    SaldoCerto.openModal('contributeModal');
-  };
-
-  const handleContribute = (e) => {
-    e.preventDefault();
-    const id = document.getElementById('contributeGoalId').value;
-    const amount = document.getElementById('contributeAmount').value;
-
-    const success = SaldoCerto.contributeToGoal(id, amount);
-    if (success) {
-      SaldoCerto.closeModal('contributeModal');
-      renderGoals();
+      SaldoCerto.closeModal('goalModal');
+      await renderGoals();
+    } catch (err) {
+      SaldoCerto.showToast('Erro ao salvar meta.', 'danger');
     }
   };
 
   const handleDelete = (id) => {
-    SaldoCerto.confirmAction('Tem certeza que deseja excluir esta meta financeira?', () => {
-      const state = SaldoCerto.getState();
-      state.goals = (state.goals || []).filter(g => g.id !== id);
-      SaldoCerto.saveData();
-      SaldoCerto.showToast('Meta excluída com sucesso.', 'info');
-      renderGoals();
+    SaldoCerto.confirmAction('Tem certeza que deseja excluir esta meta financeira?', async () => {
+      try {
+        await deleteGoal(id);
+        SaldoCerto.showToast('Meta excluída com sucesso.', 'info');
+        await renderGoals();
+      } catch (err) {
+        SaldoCerto.showToast('Erro ao excluir meta.', 'danger');
+      }
     });
   };
 
-  const init = () => {
+  const openContributeModal = (goalId) => {
+    const g = (SaldoCerto.getState().goals || []).find(goal => goal.id === goalId);
+    if (!g) return;
+
+    document.getElementById('contribGoalId').value = g.id;
+    document.getElementById('contribGoalName').textContent = g.name;
+
+    const accSelect = document.getElementById('contribAccount');
+    if (accSelect) {
+      accSelect.innerHTML = `
+        <option value="">Não debitar de nenhuma conta</option>
+        ${SaldoCerto.getState().accounts.map(a => `<option value="${a.name}">${a.name} (${SaldoCerto.formatCurrency(a.balance)})</option>`).join('')}
+      `;
+    }
+
+    document.getElementById('contribForm').reset();
+    SaldoCerto.openModal('contributeModal');
+  };
+
+  const handleSaveContribution = async (e) => {
+    e.preventDefault();
+    const goalId = document.getElementById('contribGoalId').value;
+    const amount = document.getElementById('contribAmount').value;
+    const fromAccount = document.getElementById('contribAccount').value;
+
+    try {
+      const success = await addGoalContribution(goalId, amount, fromAccount);
+      if (success) {
+        SaldoCerto.closeModal('contributeModal');
+        SaldoCerto.showToast(`Aporte de ${SaldoCerto.formatCurrency(amount)} realizado com sucesso!`, 'success');
+        await renderGoals();
+      }
+    } catch (err) {
+      SaldoCerto.showToast('Erro ao realizar aporte.', 'danger');
+    }
+  };
+
+  const init = async () => {
     SaldoCerto.initShell('metas');
-    renderGoals();
+    if (window.SaldoCertoAuth) {
+      await SaldoCertoAuth.requireAuth();
+    }
+    if (window.SaldoCertoProfile) {
+      await SaldoCertoProfile.syncUserProfileUI();
+    }
+    await renderGoals();
   };
 
   return {
     init,
+    getGoals,
+    createGoal,
+    updateGoal,
+    deleteGoal,
+    addGoalContribution,
     renderGoals,
     openAddGoalModal,
     openEditGoalModal,
     handleSaveGoal,
+    handleDelete,
     openContributeModal,
-    handleContribute,
-    handleDelete
+    handleSaveContribution
   };
 })();
 
