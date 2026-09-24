@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — SaldoCerto | Gestão Financeira Pessoal</title>
+  <meta name="description" content="Dashboard financeiro com métricas em tempo real, fluxo de caixa e distribuição de despesas.">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+  <!-- Estilos Globais, Dashboard e Responsividade -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <!-- Lucide Icons & Chart.js via CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Overlay para fechar sidebar mobile -->
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-container">
+
+    <!-- Sidebar Principal -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <img src="assets/logo.svg" alt="SaldoCerto Logo">
+        </a>
+      </div>
+
+      <div class="sidebar-content">
+        <span class="sidebar-section-title">Principal</span>
+        <nav class="nav-menu">
+          <a href="dashboard.html" class="nav-item" data-page="dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Movimentações</span>
+        <nav class="nav-menu">
+          <a href="receitas.html" class="nav-item" data-page="receitas">
+            <i data-lucide="arrow-down-circle"></i>
+            <span>Receitas</span>
+          </a>
+          <a href="despesas.html" class="nav-item" data-page="despesas">
+            <i data-lucide="arrow-up-circle"></i>
+            <span>Despesas</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Financeiro</span>
+        <nav class="nav-menu">
+          <a href="contas.html" class="nav-item" data-page="contas">
+            <i data-lucide="landmark"></i>
+            <span>Contas</span>
+          </a>
+          <a href="cartoes.html" class="nav-item" data-page="cartoes">
+            <i data-lucide="credit-card"></i>
+            <span>Cartões</span>
+          </a>
+          <a href="investimentos.html" class="nav-item" data-page="investimentos">
+            <i data-lucide="trending-up"></i>
+            <span>Investimentos</span>
+          </a>
+          <a href="patrimonio.html" class="nav-item" data-page="patrimonio">
+            <i data-lucide="pie-chart"></i>
+            <span>Patrimônio</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Planejamento</span>
+        <nav class="nav-menu">
+          <a href="metas.html" class="nav-item" data-page="metas">
+            <i data-lucide="target"></i>
+            <span>Metas</span>
+          </a>
+          <a href="relatorios.html" class="nav-item" data-page="relatorios">
+            <i data-lucide="file-bar-chart"></i>
+            <span>Relatórios</span>
+          </a>
+        </nav>
+
+        <span class="sidebar-section-title">Sistema</span>
+        <nav class="nav-menu">
+          <a href="configuracoes.html" class="nav-item" data-page="configuracoes">
+            <i data-lucide="settings"></i>
+            <span>Configurações</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Rodapé do Usuário -->
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar">LZ</div>
+          <div class="user-info">
+            <div class="user-name">Luiz Morais</div>
+            <div class="user-role">Minha Conta</div>
+          </div>
+          <a href="index.html" title="Sair do aplicativo" style="color: var(--color-text-muted); padding: 4px;">
+            <i data-lucide="log-out"></i>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Área Principal de Conteúdo -->
+    <div class="main-wrapper">
+
+      <!-- Header Superior Fixo -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-toggle" aria-label="Abrir menu de navegação">
+            <i data-lucide="menu"></i>
+          </button>
+          <div class="header-greeting">
+            <div class="greeting-title">
+              Olá, Luiz 👋
+            </div>
+            <span class="greeting-subtitle">Aqui está o resumo financeiro de suas contas.</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Seletor Dinâmico de Mês -->
+          <div class="month-selector">
+            <button class="month-btn btn-prev-month" aria-label="Mês anterior" title="Mês anterior">
+              <i data-lucide="chevron-left"></i>
+            </button>
+            <span class="current-month-display">Setembro 2026</span>
+            <button class="month-btn btn-next-month" aria-label="Próximo mês" title="Próximo mês">
+              <i data-lucide="chevron-right"></i>
+            </button>
+          </div>
+
+          <!-- Botão Modo Escuro -->
+          <button class="btn-icon theme-toggle-btn" aria-label="Alternar tema" title="Alternar tema">
+            <i data-lucide="moon"></i>
+          </button>
+
+          <!-- Notificações -->
+          <button class="btn-icon notification-btn" aria-label="Notificações" title="Notificações">
+            <i data-lucide="bell"></i>
+            <span class="notification-dot"></span>
+          </button>
+
+          <!-- Botão Nova Transação -->
+          <button class="btn btn-primary" onclick="SaldoCerto.openModal('newTransactionModal')">
+            <i data-lucide="plus-circle"></i>
+            <span class="btn-text">Nova transação</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Conteúdo do Dashboard -->
+      <main class="content-area">
+        
+        <!-- Header da Página -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard Financeiro</h1>
+            <p class="page-desc">Visão consolidada em tempo real das suas receitas, despesas e investimentos.</p>
+          </div>
+        </div>
+
+        <!-- Grid dos 4 Cards Principais de Métricas -->
+        <section class="metrics-grid">
+          
+          <!-- Card: Saldo Disponível -->
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Saldo disponível</span>
+              <div class="metric-icon-wrap icon-saldo">
+                <i data-lucide="wallet"></i>
+              </div>
+            </div>
+            <div id="metricBalance" class="metric-value">R$ 0,00</div>
+            <div id="metricBalanceTrend" class="metric-trend positive">
+              <i data-lucide="trending-up"></i>
+              <span>+8,4% este mês</span>
+            </div>
+          </div>
+
+          <!-- Card: Receitas -->
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Receitas</span>
+              <div class="metric-icon-wrap icon-receita">
+                <i data-lucide="arrow-down-circle"></i>
+              </div>
+            </div>
+            <div id="metricIncome" class="metric-value" style="color: var(--color-success);">R$ 0,00</div>
+            <div class="metric-trend text-muted">
+              <span>Total de entradas no mês</span>
+            </div>
+          </div>
+
+          <!-- Card: Despesas -->
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Despesas</span>
+              <div class="metric-icon-wrap icon-despesa">
+                <i data-lucide="arrow-up-circle"></i>
+              </div>
+            </div>
+            <div id="metricExpenses" class="metric-value" style="color: var(--color-danger);">R$ 0,00</div>
+            <div class="metric-trend text-muted">
+              <span>Total de saídas no mês</span>
+            </div>
+          </div>
+
+          <!-- Card: Investimentos -->
+          <div class="metric-card">
+            <div class="metric-card-top">
+              <span class="metric-title">Investimentos</span>
+              <div class="metric-icon-wrap icon-investimento">
+                <i data-lucide="trending-up"></i>
+              </div>
+            </div>
+            <div id="metricInvestments" class="metric-value" style="color: var(--color-info);">R$ 0,00</div>
+            <div class="metric-trend positive">
+              <i data-lucide="arrow-up-right"></i>
+              <span>Patrimônio investido</span>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Grid de Gráficos (Fluxo + Despesas) -->
+        <section class="charts-grid">
+          
+          <!-- Gráfico de Fluxo Financeiro -->
+          <div class="card">
+            <div class="chart-header">
+              <div class="chart-title-wrap">
+                <h3 class="card-title">Fluxo financeiro</h3>
+                <p>Comparativo entre entradas e saídas no período</p>
+              </div>
+              <div class="chart-filters">
+                <button class="chart-filter-btn" data-filter="7d">7 dias</button>
+                <button class="chart-filter-btn active" data-filter="30d">30 dias</button>
+                <button class="chart-filter-btn" data-filter="6m">6 meses</button>
+                <button class="chart-filter-btn" data-filter="12m">12 meses</button>
+              </div>
+            </div>
+            <div class="chart-canvas-container">
+              <canvas id="flowChartCanvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Gráfico de Rosca de Despesas -->
+          <div class="card">
+            <div class="chart-header">
+              <div class="chart-title-wrap">
+                <h3 class="card-title">Para onde vai seu dinheiro?</h3>
+                <p>Distribuição de gastos por categoria</p>
+              </div>
+            </div>
+            <div class="chart-canvas-container">
+              <canvas id="categoryChartCanvas"></canvas>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Transações Recentes -->
+        <section class="card transactions-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Transações recentes</h3>
+              <p style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Suas últimas movimentações registradas</p>
+            </div>
+            <a href="despesas.html" class="btn btn-secondary btn-sm">
+              Ver todas <i data-lucide="arrow-right"></i>
+            </a>
+          </div>
+
+          <!-- Lista Gerada Dinamicamente -->
+          <div id="recentTransactionsList" class="transaction-list">
+            <!-- Inserido dinamicamente via dashboard.js -->
+          </div>
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
