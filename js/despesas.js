@@ -97,68 +97,134 @@ const DespesasModule = (() => {
     if (badge) badge.textContent = `${count} ${count === 1 ? 'despesa listada' : 'despesas listadas'}`;
   };
 
+  const PALETTE_COLORS = [
+    '#EF4444', '#F59E0B', '#3B82F6', '#10B981', '#8B5CF6',
+    '#EC4899', '#06B6D4', '#F97316', '#64748B', '#14B8A6'
+  ];
+
   const renderChart = (expenses) => {
     const canvas = document.getElementById('expenseCategoryChartCanvas');
+    const pillsContainer = document.getElementById('expenseCategoryPills');
+    const totalSummaryEl = document.getElementById('expenseChartTotalSummary');
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (expenseChart) expenseChart.destroy();
 
     const catMap = {};
+    let totalExpensesAmount = 0;
+
     expenses.forEach(t => {
-      // Agrupa com nome simplificado para o gráfico
       const catName = (t.category || 'Outros').split('(')[0].trim();
-      catMap[catName] = (catMap[catName] || 0) + Number(t.amount || 0);
+      const amt = Number(t.amount || 0);
+      catMap[catName] = (catMap[catName] || 0) + amt;
+      totalExpensesAmount += amt;
     });
 
-    let labels = Object.keys(catMap);
-    let values = Object.values(catMap);
-
-    if (labels.length === 0) {
-      labels = ['Nenhuma despesa'];
-      values = [0];
+    if (totalSummaryEl) {
+      totalSummaryEl.textContent = totalExpensesAmount > 0 
+        ? `Total Mapeado: ${SaldoCerto.formatCurrency(totalExpensesAmount)}`
+        : '';
     }
+
+    // Ordena da maior para a menor despesa
+    const sortedEntries = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+    let labels = sortedEntries.map(e => e[0]);
+    let values = sortedEntries.map(e => e[1]);
 
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const textColor = isDark ? '#94A3B8' : '#64748B';
 
+    if (labels.length === 0 || totalExpensesAmount === 0) {
+      if (pillsContainer) {
+        pillsContainer.innerHTML = `
+          <div style="text-align: center; padding: 2rem 1rem; color: var(--color-text-muted);">
+            <i data-lucide="inbox" style="width: 32px; height: 32px; stroke-width: 1.5; margin-bottom: 8px;"></i>
+            <p style="font-size: var(--font-size-sm); margin: 0;">Nenhuma despesa para o gráfico no período.</p>
+          </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+      }
+
+      expenseChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Sem Despesas'],
+          datasets: [{
+            data: [1],
+            backgroundColor: [isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          }
+        }
+      });
+      return;
+    }
+
+    const chartColors = labels.map((_, i) => PALETTE_COLORS[i % PALETTE_COLORS.length]);
+
     expenseChart = new Chart(ctx, {
-      type: 'bar',
+      type: 'doughnut',
       data: {
         labels: labels,
         datasets: [{
-          label: 'Total Gasto',
           data: values,
-          backgroundColor: '#DC2626',
-          borderRadius: 6
+          backgroundColor: chartColors,
+          borderWidth: 2,
+          borderColor: isDark ? '#1E293B' : '#FFFFFF',
+          hoverOffset: 6
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        cutout: '70%',
         plugins: {
-          legend: { display: false },
+          legend: {
+            display: false
+          },
           tooltip: {
             callbacks: {
-              label: (context) => ` ${SaldoCerto.formatCurrency(context.raw)}`
+              label: (context) => {
+                const val = context.raw || 0;
+                const pct = totalExpensesAmount > 0 ? ((val / totalExpensesAmount) * 100).toFixed(1) : 0;
+                return ` ${context.label}: ${SaldoCerto.formatCurrency(val)} (${pct}%)`;
+              }
             }
-          }
-        },
-        scales: {
-          x: {
-            ticks: { color: textColor },
-            grid: { display: false }
-          },
-          y: {
-            ticks: {
-              color: textColor,
-              callback: (value) => `R$ ${value}`
-            },
-            grid: { color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }
           }
         }
       }
     });
+
+    // Renderiza lista lateral com percentuais e barras de progresso elegantes
+    if (pillsContainer) {
+      pillsContainer.innerHTML = sortedEntries.map(([cat, val], index) => {
+        const color = chartColors[index];
+        const pct = totalExpensesAmount > 0 ? ((val / totalExpensesAmount) * 100).toFixed(1) : 0;
+        return `
+          <div style="background: var(--color-surface); padding: 8px 12px; border-radius: var(--radius-md); border: 1px solid var(--color-border); font-size: var(--font-size-xs);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${color}; display: inline-block;"></span>
+                ${cat}
+              </span>
+              <span style="font-weight: 700; color: var(--color-danger);">${SaldoCerto.formatCurrency(val)} <span style="color: var(--color-text-muted); font-size: 10px;">(${pct}%)</span></span>
+            </div>
+            <div style="width: 100%; height: 4px; background: var(--color-border); border-radius: 2px; overflow: hidden;">
+              <div style="width: ${pct}%; height: 100%; background: ${color}; border-radius: 2px;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
   };
 
   const renderTable = (expenses) => {

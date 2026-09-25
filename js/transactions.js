@@ -299,12 +299,38 @@ const SaldoCertoTransactions = (() => {
   const updateExpense = async (id, data) => updateTransaction(id, data);
   const deleteExpense = async (id) => deleteTransaction(id);
 
+  /**
+   * Remove todas as movimentações financeiras do usuário (reset de dados)
+   */
+  const deleteAllTransactions = async () => {
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+      const user = await SaldoCertoAuth.getCurrentUser();
+      if (!user) throw new Error('Usuário não autenticado.');
+
+      const { error } = await window.supabaseClient
+        .from('transactions')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('[Transactions Supabase] Erro ao deletar todas as transações:', error);
+        throw error;
+      }
+    }
+
+    SaldoCerto.getState().transactions = [];
+    SaldoCerto.saveData();
+    SaldoCerto.showToast('Todas as movimentações foram apagadas com sucesso.', 'info');
+    return true;
+  };
+
   return {
     getTransactions,
     getTransaction,
     createTransaction,
     updateTransaction,
     deleteTransaction,
+    deleteAllTransactions,
     getIncome,
     createIncome,
     updateIncome,

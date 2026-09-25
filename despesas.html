@@ -212,21 +212,8 @@
           </div>
         </section>
 
-        <!-- Gráfico de Despesas -->
-        <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
-          <div class="card">
-            <div class="chart-header">
-              <h3 class="card-title">Gastos por Categoria</h3>
-              <span style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Mês selecionado</span>
-            </div>
-            <div class="chart-canvas-container" style="height: 240px;">
-              <canvas id="expenseCategoryChartCanvas"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tabela de Despesas e Filtros -->
-        <div class="card">
+        <!-- Tabela de Despesas e Filtros (Imediata ao topo para agilidade) -->
+        <div class="card" style="margin-bottom: var(--space-6);">
           <div class="card-header" style="flex-wrap: wrap; gap: var(--space-4);">
             <div style="display: flex; gap: var(--space-3); flex: 1; min-width: 280px; flex-wrap: wrap;">
               <!-- Busca Textual -->
@@ -242,6 +229,7 @@
                 <option value="Saúde">Saúde</option>
                 <option value="Educação">Educação</option>
                 <option value="Assinaturas">Assinaturas</option>
+                <option value="Compras & Vestuário">Compras & Vestuário</option>
                 <option value="Outros">Outros</option>
               </select>
 
@@ -276,6 +264,29 @@
                 <!-- Linhas inseridas dinamicamente -->
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Análise Visual & Gráfico de Despesas -->
+        <div class="card" style="margin-bottom: var(--space-6);">
+          <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h3 class="card-title">Distribuição de Gastos por Categoria</h3>
+              <span style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Proporção e pesos percentuais no mês selecionado</span>
+            </div>
+            <div id="expenseChartTotalSummary" style="font-weight: 700; font-size: var(--font-size-sm); color: var(--color-danger);"></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-6); align-items: center; margin-top: var(--space-4);">
+            <!-- Canvas do Gráfico Doughnut / Barra Dinâmica -->
+            <div class="chart-canvas-container" style="height: 260px; position: relative;">
+              <canvas id="expenseCategoryChartCanvas"></canvas>
+            </div>
+
+            <!-- Resumo Dinâmico em Pills / Lista de Categorias -->
+            <div id="expenseCategoryPills" style="display: flex; flex-direction: column; gap: var(--space-2); max-height: 260px; overflow-y: auto; padding-right: var(--space-2);">
+              <!-- Inserido dinamicamente via JS com porcentagens e barras de progresso -->
+            </div>
           </div>
         </div>
 

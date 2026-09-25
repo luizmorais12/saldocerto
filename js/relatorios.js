@@ -11,30 +11,51 @@ const RelatoriosModule = (() => {
     const state = SaldoCerto.getState();
     const txs = state.transactions || [];
 
-    // Dados para os últimos 6 meses
-    const monthsData = [
-      { name: 'Abril', income: 5800, expense: 2900 },
-      { name: 'Maio', income: 6100, expense: 3100 },
-      { name: 'Junho', income: 5950, expense: 3450 },
-      { name: 'Julho', income: 6400, expense: 3200 },
-      { name: 'Agosto', income: 6200, expense: 3050 },
-      { name: 'Setembro', income: SaldoCerto.calculateIncome(), expense: SaldoCerto.calculateExpenses() }
+    // Monta dados reais dos meses selecionados baseados no histórico do usuário
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-indexed
+
+    const monthNames = [
+      'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+      'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
     ];
 
-    let filteredMonths = [];
-    if (activePeriod === 'month') {
-      filteredMonths = [monthsData[5]];
-    } else if (activePeriod === 'quarter') {
-      filteredMonths = monthsData.slice(3);
-    } else if (activePeriod === 'semester') {
-      filteredMonths = monthsData;
-    } else {
-      filteredMonths = [
-        { name: 'Jan', income: 5600, expense: 3100 },
-        { name: 'Fev', income: 5800, expense: 3200 },
-        { name: 'Mar', income: 5900, expense: 3150 },
-        ...monthsData
-      ];
+    const countMonths = activePeriod === 'month' ? 1 : activePeriod === 'quarter' ? 3 : activePeriod === 'semester' ? 6 : 12;
+    const filteredMonths = [];
+
+    for (let i = countMonths - 1; i >= 0; i--) {
+      const d = new Date(currentYear, currentMonth - i, 1);
+      const mIdx = d.getMonth();
+      const yr = d.getFullYear();
+      const mName = monthNames[mIdx];
+
+      // Filtra transações deste mês
+      const mIncomes = txs
+        .filter(t => {
+          if (t.type !== 'income') return false;
+          const dateStr = t.date || t.transaction_date;
+          if (!dateStr) return false;
+          const td = new Date(dateStr + 'T00:00:00');
+          return td.getFullYear() === yr && td.getMonth() === mIdx;
+        })
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+      const mExpenses = txs
+        .filter(t => {
+          if (t.type !== 'expense') return false;
+          const dateStr = t.date || t.transaction_date;
+          if (!dateStr) return false;
+          const td = new Date(dateStr + 'T00:00:00');
+          return td.getFullYear() === yr && td.getMonth() === mIdx;
+        })
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+      filteredMonths.push({
+        name: `${mName}${yr !== currentYear ? ' ' + yr : ''}`,
+        income: mIncomes,
+        expense: mExpenses
+      });
     }
 
     const totalIncome = filteredMonths.reduce((s, m) => s + m.income, 0);
@@ -134,20 +155,44 @@ const RelatoriosModule = (() => {
     const expenses = txs.filter(t => t.type === 'expense');
     const catMap = {};
     expenses.forEach(t => {
-      catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount || 0);
+      const catName = (t.category || 'Outros').split('(')[0].trim();
+      catMap[catName] = (catMap[catName] || 0) + Number(t.amount || 0);
     });
 
     let labels = Object.keys(catMap);
     let values = Object.values(catMap);
 
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#94A3B8' : '#64748B';
+
     if (labels.length === 0) {
-      labels = ['Moradia', 'Alimentação', 'Transporte', 'Lazer'];
-      values = [1200, 350, 120, 180];
+      categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Sem Despesas Cadastradas'],
+          datasets: [{
+            data: [1],
+            backgroundColor: [isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: textColor }
+            },
+            tooltip: { enabled: false }
+          }
+        }
+      });
+      return;
     }
 
     const colors = ['#6366F1', '#F59E0B', '#3B82F6', '#EC4899', '#EF4444', '#8B5CF6', '#14B8A6', '#64748B'];
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const textColor = isDark ? '#94A3B8' : '#64748B';
 
     categoryChart = new Chart(ctx, {
       type: 'doughnut',
@@ -195,7 +240,7 @@ const RelatoriosModule = (() => {
 
       return `
         <tr>
-          <td><strong>${m.name} 2026</strong></td>
+          <td><strong>${m.name}</strong></td>
           <td style="color: var(--color-success); font-weight: 600;">+ ${SaldoCerto.formatCurrency(m.income)}</td>
           <td style="color: var(--color-danger); font-weight: 600;">- ${SaldoCerto.formatCurrency(m.expense)}</td>
           <td style="color: ${isPositive ? 'var(--color-primary)' : 'var(--color-danger)'}; font-weight: 800;">
@@ -243,13 +288,13 @@ const RelatoriosModule = (() => {
 
     const rows = txs.map(t => [
       `"${t.id}"`,
-      `"${SaldoCerto.formatDate(t.date)}"`,
+      `"${SaldoCerto.formatDate(t.date || t.transaction_date)}"`,
       `"${t.type === 'income' ? 'Receita' : 'Despesa'}"`,
       `"${(t.description || '').replace(/"/g, '""')}"`,
       `"${t.category || ''}"`,
       `"${t.account || ''}"`,
-      `"${t.paymentMethod || ''}"`,
-      `"${t.amount.toFixed(2).replace('.', ',')}"`,
+      `"${t.paymentMethod || t.payment_method || ''}"`,
+      `"${Number(t.amount || 0).toFixed(2).replace('.', ',')}"`,
       `"${(t.notes || '').replace(/"/g, '""')}"`
     ]);
 
@@ -265,6 +310,32 @@ const RelatoriosModule = (() => {
     document.body.removeChild(link);
 
     SaldoCerto.showToast('Relatório financeiro exportado com sucesso em CSV!', 'success');
+  };
+
+  /**
+   * Ação para Apagar Todos os Lançamentos (Reset de dados)
+   */
+  const promptClearAllTransactions = () => {
+    SaldoCerto.confirmAction(
+      'ATENÇÃO: Deseja realmente APAGAR TODOS os lançamentos financeiros cadastrados (receitas e despesas)? Esta ação não pode ser desfeita.',
+      async () => {
+        try {
+          if (window.SaldoCertoTransactions && window.SaldoCertoTransactions.deleteAllTransactions) {
+            await window.SaldoCertoTransactions.deleteAllTransactions();
+          } else {
+            SaldoCerto.getState().transactions = [];
+            SaldoCerto.saveData();
+          }
+
+          SaldoCerto.showToast('Todos os lançamentos foram apagados com sucesso! Comece do zero com saldo limpo.', 'success');
+          renderReports();
+          if (window.lucide) window.lucide.createIcons();
+        } catch (err) {
+          console.error(err);
+          SaldoCerto.showToast('Erro ao apagar lançamentos. Tente novamente.', 'danger');
+        }
+      }
+    );
   };
 
   const init = async () => {
@@ -285,13 +356,15 @@ const RelatoriosModule = (() => {
     }
     renderReports();
     setupFilterButtons();
+    if (window.lucide) window.lucide.createIcons();
     window.addEventListener('saldocerto:themeChanged', renderReports);
   };
 
   return {
     init,
     renderReports,
-    exportToCSV
+    exportToCSV,
+    promptClearAllTransactions
   };
 })();
 

@@ -712,7 +712,9 @@ const DashboardModule = (() => {
             callbacks: {
               label: (context) => {
                 if (context.label === 'Sem despesas no mês') return ' Nenhuma despesa registrada';
-                return ` ${context.label}: ${SaldoCerto.formatCurrency(context.raw)}`;
+                const total = catValues.reduce((s, v) => s + Number(v || 0), 0);
+                const pct = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+                return ` ${context.label}: ${SaldoCerto.formatCurrency(context.raw)} (${pct}%)`;
               }
             }
           }

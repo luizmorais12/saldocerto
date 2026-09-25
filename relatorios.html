@@ -175,9 +175,50 @@
               <i data-lucide="printer"></i> Imprimir / PDF
             </button>
 
-            <button class="btn btn-outline" onclick="RelatoriosModule.exportToCSV()">
-              <i data-lucide="file-spreadsheet"></i> Exportar Relatório
-            </button>
+        <!-- Painel Explicativo: O que são os Relatórios e como interpretar -->
+        <div class="card" style="margin-bottom: var(--space-6); background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(16, 185, 129, 0.05)); border: 1px solid rgba(99, 102, 241, 0.2);">
+          <div style="display: flex; gap: var(--space-4); align-items: flex-start;">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-lg); background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="help-circle" style="width: 24px; height: 24px;"></i>
+            </div>
+            <div style="flex: 1;">
+              <h3 style="font-size: var(--font-size-base); font-weight: 700; margin-bottom: var(--space-1); color: var(--color-text);">
+                O que é a área de Relatórios e como entender seus números?
+              </h3>
+              <p style="font-size: var(--font-size-xs); color: var(--color-text-muted); line-height: 1.6; margin-bottom: var(--space-3);">
+                Esta tela funciona como o seu <strong>DRE Financeiro Pessoal (Demonstrativo de Resultados)</strong>. Ela compila todas as suas entradas e saídas no período escolhido para que você saiba com exatidão para onde vai cada real e qual foi seu resultado líquido.
+              </p>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3); font-size: var(--font-size-xs);">
+                <div style="background: var(--color-surface); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                  <strong style="color: var(--color-success); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <i data-lucide="arrow-down-circle" style="width: 14px; height: 14px;"></i> Receitas Consolidadas
+                  </strong>
+                  <span style="color: var(--color-text-muted);">Soma de salários, freelas, rendimentos e vendas efetivadas no período selecionado.</span>
+                </div>
+
+                <div style="background: var(--color-surface); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                  <strong style="color: var(--color-danger); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <i data-lucide="arrow-up-circle" style="width: 14px; height: 14px;"></i> Despesas Totais
+                  </strong>
+                  <span style="color: var(--color-text-muted);">Tudo o que saiu: moradia, contas, alimentação, faturas de cartão e parcelamentos.</span>
+                </div>
+
+                <div style="background: var(--color-surface); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                  <strong style="color: var(--color-primary); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <i data-lucide="wallet" style="width: 14px; height: 14px;"></i> Saldo Líquido
+                  </strong>
+                  <span style="color: var(--color-text-muted);">Receitas menos Despesas. Se positivo (Superávit), você acumulou patrimônio. Se negativo (Déficit), gastou a mais.</span>
+                </div>
+
+                <div style="background: var(--color-surface); padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                  <strong style="color: #F59E0B; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <i data-lucide="piggy-bank" style="width: 14px; height: 14px;"></i> Taxa de Poupança
+                  </strong>
+                  <span style="color: var(--color-text-muted);">Porcentagem do seu ganho que sobrou limpa para investir. A recomendação padrão de saúde financeira é &ge; 20%.</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -276,6 +317,34 @@
                 <!-- Inserido dinamicamente via JS -->
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Card de Limpeza Geral de Dados (Apagar Tudo) -->
+        <div class="card" style="margin-top: var(--space-6); border: 1px solid rgba(239, 68, 68, 0.25); background: linear-gradient(135deg, rgba(239, 68, 68, 0.03), var(--color-card));">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-4);">
+            <div style="display: flex; gap: var(--space-3); align-items: center;">
+              <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: rgba(239, 68, 68, 0.1); color: var(--color-danger); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="alert-triangle" style="width: 22px; height: 22px;"></i>
+              </div>
+              <div>
+                <h3 style="font-size: var(--font-size-base); font-weight: 700; color: var(--color-danger); margin-bottom: 2px;">
+                  Zona de Gerenciamento & Limpeza de Dados
+                </h3>
+                <p style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin: 0; max-width: 600px;">
+                  Precisa reiniciar seus testes ou começar a sua organização do zero? Você pode apagar todos os lançamentos de receitas e despesas com um clique seguro.
+                </p>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="RelatoriosModule.exportToCSV()" title="Gere um backup em CSV antes de limpar seus dados">
+                <i data-lucide="download"></i> Fazer Backup CSV
+              </button>
+              <button class="btn btn-outline" style="color: var(--color-danger); border-color: var(--color-danger);" onclick="RelatoriosModule.promptClearAllTransactions()">
+                <i data-lucide="trash-2"></i> Apagar Todos os Lançamentos
+              </button>
+            </div>
           </div>
         </div>
 

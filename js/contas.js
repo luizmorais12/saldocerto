@@ -368,6 +368,8 @@ const ContasModule = (() => {
   const openAddAccountModal = () => {
     document.getElementById('accountForm').reset();
     document.getElementById('editAccountId').value = '';
+    const balInput = document.getElementById('accBalance');
+    if (balInput) balInput.value = '0.00';
     document.getElementById('accountModalTitle').innerHTML = '<i data-lucide="landmark" class="text-primary"></i> Nova Conta';
     SaldoCerto.openModal('accountModal');
     if (window.lucide) window.lucide.createIcons();

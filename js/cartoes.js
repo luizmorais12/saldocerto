@@ -446,6 +446,66 @@ const CartoesModule = (() => {
     renderInstallmentsTable(cards);
   };
 
+  const handlePurchaseTypeChange = () => {
+    const type = document.getElementById('instPurchaseType')?.value || 'parcelada';
+    const installmentsInput = document.getElementById('instTotalInstallments');
+    const installmentsGroup = document.getElementById('instInstallmentsGroup');
+    const currentInstGroup = document.getElementById('instCurrentInstallmentRow');
+    const titleModal = document.getElementById('instModalTitle');
+    const submitBtn = document.getElementById('btnSaveCardLaunch');
+
+    if (type === 'a_vista') {
+      if (installmentsInput) installmentsInput.value = '1';
+      if (installmentsGroup) installmentsGroup.style.display = 'none';
+      if (currentInstGroup) currentInstGroup.style.display = 'none';
+      if (titleModal) titleModal.textContent = 'Nova Compra À Vista no Cartão';
+      if (submitBtn) submitBtn.textContent = 'Lançar Compra À Vista';
+    } else if (type === 'pix_credito') {
+      if (installmentsGroup) installmentsGroup.style.display = 'block';
+      if (currentInstGroup) currentInstGroup.style.display = 'grid';
+      if (titleModal) titleModal.textContent = 'Novo PIX no Crédito';
+      if (submitBtn) submitBtn.textContent = 'Registrar PIX no Crédito';
+      const label = document.getElementById('instInstallmentsLabel');
+      if (label) label.textContent = 'Parcelas do PIX (1x à vista ou parcelado) *';
+    } else {
+      // parcelada
+      if (installmentsGroup) installmentsGroup.style.display = 'block';
+      if (currentInstGroup) currentInstGroup.style.display = 'grid';
+      if (installmentsInput && parseInt(installmentsInput.value, 10) <= 1) installmentsInput.value = '2';
+      if (titleModal) titleModal.textContent = 'Nova Compra Parcelada no Cartão';
+      if (submitBtn) submitBtn.textContent = 'Registrar Compra Parcelada';
+      const label = document.getElementById('instInstallmentsLabel');
+      if (label) label.textContent = 'Número de Parcelas *';
+    }
+    updateInstallmentPreview();
+  };
+
+  const updateInstallmentPreview = () => {
+    const type = document.getElementById('instPurchaseType')?.value || 'parcelada';
+    const total = parseFloat(document.getElementById('instTotalAmount')?.value) || 0;
+    const installments = Math.max(1, parseInt(document.getElementById('instTotalInstallments')?.value, 10) || 1);
+    const titleEl = document.getElementById('instCalcBannerTitle');
+    const subEl = document.getElementById('instCalcBannerSub');
+    if (!titleEl || !subEl) return;
+
+    if (total <= 0) {
+      titleEl.textContent = 'Resumo da Fatura';
+      subEl.textContent = 'Informe o valor para simular o impacto no seu limite e fatura.';
+      return;
+    }
+
+    if (type === 'a_vista' || installments === 1) {
+      const typeLabel = type === 'pix_credito' ? 'PIX no Crédito (À vista)' : 'Compra À Vista';
+      titleEl.textContent = `${typeLabel}: 1x de ${SaldoCerto.formatCurrency(total)}`;
+      subEl.textContent = `Será cobrado o total de ${SaldoCerto.formatCurrency(total)} na próxima fatura.`;
+    } else {
+      const perMonth = total / installments;
+      const typeLabel = type === 'pix_credito' ? 'PIX no Crédito' : 'Compra Parcelada';
+      titleEl.textContent = `${typeLabel}: ${installments}x de ${SaldoCerto.formatCurrency(perMonth)} por mês`;
+      subEl.textContent = `Total financiado: ${SaldoCerto.formatCurrency(total)} • Impacto mensal: ${SaldoCerto.formatCurrency(perMonth)}`;
+    }
+  };
+
   const renderInstallmentsTable = (cards) => {
     const tbody = document.getElementById('installmentsTableBody');
     if (!tbody) return;
@@ -460,11 +520,14 @@ const CartoesModule = (() => {
     if (allInstallments.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7">
+          <td colspan="8">
             <div class="empty-state">
               <div class="empty-state-icon"><i data-lucide="check-circle-2"></i></div>
-              <h4 class="empty-state-title">Nenhuma compra parcelada ativa</h4>
-              <p class="empty-state-desc">Você não possui faturas com parcelas futuras pendentes.</p>
+              <h4 class="empty-state-title">Nenhum lançamento no cartão ativo</h4>
+              <p class="empty-state-desc">Você não possui faturas ou compras registradas nos cartões.</p>
+              <button class="btn btn-secondary btn-sm" onclick="CartoesModule.openAddInstallmentModal()">
+                <i data-lucide="plus-circle"></i> Novo lançamento no cartão
+              </button>
             </div>
           </td>
         </tr>
@@ -474,26 +537,54 @@ const CartoesModule = (() => {
     }
 
     tbody.innerHTML = allInstallments.map(inst => {
-      const remaining = inst.totalInstallments - inst.currentInstallment;
+      const isAVista = Number(inst.totalInstallments) <= 1;
+      const isPix = (inst.description || '').toLowerCase().includes('pix');
+      const remaining = Math.max(0, inst.totalInstallments - inst.currentInstallment);
+
+      let modalidadeBadge = '';
+      if (isPix) {
+        modalidadeBadge = `<span class="badge badge-primary" style="font-size: 10px; font-weight: 700;">PIX Crédito</span>`;
+      } else if (isAVista) {
+        modalidadeBadge = `<span class="badge badge-info" style="font-size: 10px; font-weight: 700;">À Vista</span>`;
+      } else {
+        modalidadeBadge = `<span class="badge badge-warning" style="font-size: 10px; font-weight: 700;">Parcelado</span>`;
+      }
+
+      let parcelasHtml = '';
+      if (isAVista) {
+        parcelasHtml = `<span>1x (À vista)</span>`;
+      } else {
+        const pct = Math.min(100, (inst.currentInstallment / inst.totalInstallments) * 100);
+        parcelasHtml = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span><strong>${inst.currentInstallment}</strong> de ${inst.totalInstallments}</span>
+            <div style="width: 50px; height: 6px; background: var(--color-border); border-radius: 4px; overflow: hidden;">
+              <div style="width: ${pct}%; height: 100%; background: var(--color-primary);"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      let restantesBadge = '';
+      if (isAVista) {
+        restantesBadge = `<span class="badge badge-success">Fatura atual</span>`;
+      } else {
+        restantesBadge = `<span class="badge badge-warning">${remaining} restante${remaining === 1 ? '' : 's'}</span>`;
+      }
+
       return `
         <tr>
           <td><strong>${inst.description}</strong></td>
           <td><span class="badge badge-info">${inst.cardName}</span></td>
+          <td>${modalidadeBadge}</td>
           <td>${SaldoCerto.formatCurrency(inst.totalAmount)}</td>
-          <td>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span><strong>${inst.currentInstallment}</strong> de ${inst.totalInstallments}</span>
-              <div style="width: 50px; height: 6px; background: var(--color-border); border-radius: 4px; overflow: hidden;">
-                <div style="width: ${(inst.currentInstallment / inst.totalInstallments) * 100}%; height: 100%; background: var(--color-primary);"></div>
-              </div>
-            </div>
-          </td>
+          <td>${parcelasHtml}</td>
           <td style="color: var(--color-danger); font-weight: 700;">
-            - ${SaldoCerto.formatCurrency(inst.monthlyAmount)}
+            - ${SaldoCerto.formatCurrency(inst.monthlyAmount || inst.totalAmount)}
           </td>
-          <td><span class="badge badge-warning">${remaining} restante${remaining === 1 ? '' : 's'}</span></td>
+          <td>${restantesBadge}</td>
           <td>
-            <button class="btn-icon" style="width: 32px; height: 32px;" title="Excluir parcelamento" onclick="CartoesModule.handleDeleteInstallment('${inst.cardId}', '${inst.id}')">
+            <button class="btn-icon" style="width: 32px; height: 32px;" title="Excluir lançamento" onclick="CartoesModule.handleDeleteInstallment('${inst.cardId}', '${inst.id}')">
               <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--color-danger);"></i>
             </button>
           </td>
@@ -530,7 +621,7 @@ const CartoesModule = (() => {
   };
 
   const handleDeleteCard = (cardId) => {
-    SaldoCerto.confirmAction('Tem certeza que deseja excluir este cartão e todos os seus parcelamentos associados?', async () => {
+    SaldoCerto.confirmAction('Tem certeza que deseja excluir este cartão e todos os seus lançamentos associados?', async () => {
       try {
         await deleteCreditCard(cardId);
         SaldoCerto.showToast('Cartão excluído com sucesso.', 'info');
@@ -547,23 +638,45 @@ const CartoesModule = (() => {
     if (!select) return;
 
     if (!state.creditCards || state.creditCards.length === 0) {
-      SaldoCerto.showToast('Cadastre um cartão de crédito antes de lançar compras parceladas.', 'warning');
+      SaldoCerto.showToast('Cadastre um cartão de crédito antes de lançar compras.', 'warning');
       return;
     }
 
     select.innerHTML = state.creditCards.map(c => `<option value="${c.id}">${c.name || c.brand} (•••• ${c.lastFour})</option>`).join('');
     document.getElementById('installmentForm').reset();
+    const dateInput = document.getElementById('instFirstDueDate');
+    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+    handlePurchaseTypeChange();
     SaldoCerto.openModal('installmentModal');
   };
 
   const handleSaveInstallment = async (e) => {
     e.preventDefault();
     const cardId = document.getElementById('instCardSelect').value;
-    const description = document.getElementById('instDesc').value.trim();
-    const totalAmount = document.getElementById('instTotalAmount').value;
-    const installments = document.getElementById('instTotalInstallments')?.value || document.getElementById('instTotalCount')?.value || 1;
-    const currentInstallment = document.getElementById('instCurrentInstallment')?.value || document.getElementById('instCurrentNum')?.value || 1;
+    const purchaseType = document.getElementById('instPurchaseType')?.value || 'parcelada';
+    let description = document.getElementById('instDesc').value.trim();
+    const totalAmount = parseFloat(document.getElementById('instTotalAmount').value) || 0;
+    let installments = parseInt(document.getElementById('instTotalInstallments')?.value, 10) || 1;
+    let currentInstallment = parseInt(document.getElementById('instCurrentInstallment')?.value, 10) || 1;
     const firstDueDate = document.getElementById('instFirstDueDate')?.value || new Date().toISOString().split('T')[0];
+
+    if (!description || totalAmount <= 0) {
+      SaldoCerto.showToast('Informe uma descrição e um valor válido.', 'warning');
+      return;
+    }
+
+    if (purchaseType === 'a_vista') {
+      installments = 1;
+      currentInstallment = 1;
+    }
+
+    if (purchaseType === 'pix_credito' && !description.toLowerCase().includes('pix')) {
+      description = `PIX Crédito: ${description}`;
+    }
+
+    const state = SaldoCerto.getState();
+    const card = (state.creditCards || []).find(c => c.id === cardId);
+    const cardName = card ? (card.name || card.brand) : 'Cartão';
 
     try {
       await createCardPurchase({
@@ -575,22 +688,49 @@ const CartoesModule = (() => {
         firstDueDate
       });
 
+      // Sincroniza também com a lista global de despesas do usuário
+      const monthlyAmount = totalAmount / installments;
+      const txPayload = {
+        type: 'expense',
+        description: installments > 1 ? `${description} (${currentInstallment}/${installments})` : description,
+        amount: monthlyAmount,
+        date: firstDueDate,
+        category: 'Compras & Vestuário',
+        account: cardName,
+        paymentMethod: purchaseType === 'pix_credito' ? 'PIX' : 'Cartão de Crédito',
+        recurrence: installments > 1 ? 'Parcelada' : 'Única',
+        notes: installments > 1 
+          ? `[PARCELADO ${currentInstallment}/${installments}: ${installments}x de ${SaldoCerto.formatCurrency(monthlyAmount)} | Total: ${SaldoCerto.formatCurrency(totalAmount)}] Cartão: ${cardName}`
+          : `Lançamento em cartão: ${cardName} (${purchaseType === 'pix_credito' ? 'PIX no Crédito' : 'À Vista'})`
+      };
+
+      if (window.SaldoCertoTransactions && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+        try {
+          await SaldoCertoTransactions.createTransaction(txPayload);
+        } catch (txErr) {
+          console.warn('[Cartoes] Aviso ao sincronizar transação:', txErr);
+        }
+      } else if (SaldoCerto.addTransaction) {
+        SaldoCerto.addTransaction(txPayload);
+      }
+
       SaldoCerto.closeModal('installmentModal');
-      SaldoCerto.showToast(`Compra parcelada "${description}" lançada!`, 'success');
+      SaldoCerto.showToast(`Lançamento "${description}" registrado no cartão!`, 'success');
       await renderCards();
     } catch (err) {
-      SaldoCerto.showToast('Erro ao cadastrar compra parcelada.', 'danger');
+      console.error(err);
+      SaldoCerto.showToast('Erro ao registrar lançamento no cartão.', 'danger');
     }
   };
 
   const handleDeleteInstallment = (cardId, instId) => {
-    SaldoCerto.confirmAction('Tem certeza que deseja excluir esta compra parcelada?', async () => {
+    SaldoCerto.confirmAction('Tem certeza que deseja excluir este lançamento do cartão?', async () => {
       try {
         await deleteCardPurchase(cardId, instId);
-        SaldoCerto.showToast('Parcelamento excluído com sucesso.', 'info');
+        SaldoCerto.showToast('Lançamento excluído com sucesso.', 'info');
         await renderCards();
       } catch (err) {
-        SaldoCerto.showToast('Erro ao excluir parcelamento.', 'danger');
+        SaldoCerto.showToast('Erro ao excluir lançamento.', 'danger');
       }
     });
   };
@@ -686,7 +826,9 @@ const CartoesModule = (() => {
     handleDeleteInstallment,
     adjustModalLimit,
     quickAdjustCardLimit,
-    promptEditLimit
+    promptEditLimit,
+    handlePurchaseTypeChange,
+    updateInstallmentPreview
   };
 })();
 
