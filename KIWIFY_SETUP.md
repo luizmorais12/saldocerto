@@ -17,7 +17,7 @@ Assim que o cliente paga no PIX ou Cartão, a Kiwify redireciona a tela dele dir
    * Localize o campo **"URL da Página de Obrigado personalizada"** ou **"URL de entrega do produto"**.
    * Cole a URL da página de ativação do seu site:
      ```text
-     https://seusite.com.br/obrigado.html
+     https://salldocerto.netlify.app/obrigado.html
      ```
      *(Substitua `https://seusite.com.br` pelo domínio onde seu site estiver hospedado, ou use a URL temporária se estiver publicando no Vercel/Netlify/Host)*
 4. Clique em **Salvar alterações**.
