@@ -29,11 +29,23 @@
     </button>
   </header>
 
-  <!-- Container Principal de Cadastro -->
+  <!-- Container Principal de Cadastro / Ativação -->
   <main class="auth-main">
     <div class="auth-card">
-      <h1 class="auth-title">Crie sua conta grátis 🚀</h1>
-      <p class="auth-subtitle">Comece hoje a transformar a forma como você cuida do seu dinheiro.</p>
+      <h1 class="auth-title">Ativar Conta SaldoCerto 🔐</h1>
+      <p class="auth-subtitle">Acesso exclusivo para assinantes. Crie sua senha utilizando o mesmo e-mail que usou na Kiwify.</p>
+
+      <!-- Banner Informativo de Assinatura Exclusiva Kiwify -->
+      <div id="subscriberPaywallBanner" style="background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.25); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: var(--space-4); font-size: 12px; display: flex; align-items: flex-start; gap: 10px;">
+        <i data-lucide="shield-check" style="width: 20px; height: 20px; color: var(--color-primary); flex-shrink: 0; margin-top: 2px;"></i>
+        <div>
+          <strong style="color: var(--color-text); display: block; margin-bottom: 2px;">Plano por Assinatura (R$ 19,90/mês)</strong>
+          <span style="color: var(--color-text-muted); line-height: 1.4; display: block;">Se você já realizou o pagamento na Kiwify, basta informar seu e-mail abaixo para definir sua senha.</span>
+          <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; color: var(--color-primary); font-weight: 700; text-decoration: none;">
+            <span>Ainda não assinou? Assinar na Kiwify</span> &rarr;
+          </a>
+        </div>
+      </div>
 
       <!-- Mensagens de Alerta / Erro -->
       <div id="authAlert" class="auth-alert">
@@ -58,7 +70,7 @@
         </div>
 
         <div class="auth-field">
-          <label class="auth-label" for="signupEmail">E-mail</label>
+          <label class="auth-label" for="signupEmail">E-mail (o mesmo usado na Kiwify)</label>
           <div class="auth-input-wrap">
             <i data-lucide="mail" class="auth-input-icon"></i>
             <input 
@@ -191,7 +203,7 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('signupName').value.trim();
-      const email = document.getElementById('signupEmail').value.trim();
+      const email = document.getElementById('signupEmail').value.trim().toLowerCase();
       const password = document.getElementById('signupPassword').value;
       const confirmPassword = document.getElementById('signupConfirmPassword').value;
 
@@ -199,7 +211,7 @@
         showAlert('Por favor, informe seu nome completo.');
         return;
       }
-      if (!email) {
+      if (!email || !email.includes('@')) {
         showAlert('Por favor, informe um endereço de e-mail válido.');
         return;
       }
@@ -213,7 +225,7 @@
       }
 
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span>Criando conta...</span>';
+      submitBtn.innerHTML = '<span>Verificando assinatura...</span>';
 
       try {
         if (!window.isSupabaseConfigured()) {
@@ -223,6 +235,42 @@
           lucide.createIcons();
           return;
         }
+
+        // 1. Checa se o usuário é um assinante autorizado na Kiwify ou veio com token de confirmação
+        const urlParams = new URLSearchParams(window.location.search);
+        const isDirectApproved = urlParams.get('kiwify') === 'approved' || urlParams.get('ref') === 'kiwify' || urlParams.get('status') === 'approved' || urlParams.get('order_id');
+
+        if (!isDirectApproved) {
+          const isAuthorized = await SaldoCertoAuth.isEmailAuthorizedSubscriber(email);
+          if (!isAuthorized) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>Criar minha conta</span><i data-lucide="check-circle"></i>';
+            lucide.createIcons();
+
+            const alertEl = document.getElementById('authAlert');
+            if (alertEl) {
+              alertEl.className = 'auth-alert visible danger';
+              alertEl.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:8px; width: 100%;">
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <i data-lucide="lock" style="width:16px; height:16px; flex-shrink:0;"></i>
+                    <strong>Assinatura não localizada para este e-mail</strong>
+                  </div>
+                  <span style="font-size:12px; line-height:1.4;">
+                    O SaldoCerto é exclusivo para assinantes. Não localizamos uma assinatura ativa para o e-mail <strong>${email}</strong> na Kiwify.
+                  </span>
+                  <a href="https://pay.kiwify.com.br/uKfAHEc" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="font-size: 12px; width: 100%; justify-content: center; text-decoration: none; margin-top: 4px;">
+                    <span>Assinar SaldoCerto por R$ 19,90/mês</span> &rarr;
+                  </a>
+                </div>
+              `;
+              lucide.createIcons();
+            }
+            return;
+          }
+        }
+
+        submitBtn.innerHTML = '<span>Criando conta e ativando...</span>';
 
         const data = await SaldoCertoAuth.signUp(name, email, password);
 
@@ -234,11 +282,11 @@
           return;
         }
 
-        // Se logado imediatamente, redireciona para o onboarding de primeiro acesso
-        showAlert('Conta criada com sucesso! Redirecionando para a configuração...', 'success');
+        // Redireciona para o dashboard com acesso liberado
+        showAlert('Assinatura confirmada e conta criada com sucesso! Entrando...', 'success');
         setTimeout(() => {
-          window.location.href = 'onboarding.html';
-        }, 800);
+          window.location.href = 'dashboard.html';
+        }, 900);
 
       } catch (err) {
         console.error('Erro no cadastro:', err);

@@ -21,6 +21,7 @@ INSERT INTO public.categories (name, type, icon, color) VALUES
   ('Freelance', 'income', 'laptop', '#059669'),
   ('Benefícios', 'income', 'gift', '#10B981'),
   ('Investimentos', 'income', 'trending-up', '#0EA5E9'),
-  ('Vendas', 'income', 'shopping-bag', '#84CC16'),
-  ('Outros', 'income', 'plus-circle', '#64748B')
-ON CONFLICT DO NOTHING;
+-- Assinantes autorizados iniciais (Administrador / Desenvolvedor)
+INSERT INTO public.authorized_subscribers (email, full_name, order_id, status, product_name) VALUES
+  ('luiz@saldocerto.com.br', 'Luiz Morais (Admin)', 'MANUAL-ADMIN-001', 'active', 'SaldoCerto Mensal - Admin')
+ON CONFLICT (email) DO UPDATE SET status = 'active';

@@ -9,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- 2. FUNÇÃO GENÉRICA PARA ATUALIZAÇÃO AUTOMÁTICA DE updated_at
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS $$a
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;

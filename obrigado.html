@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compra Aprovada! Ative seu Acesso — SaldoCerto</title>
+  <meta name="description" content="Sua compra do SaldoCerto foi confirmada com sucesso! Crie sua senha e acesse agora mesmo.">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+  <!-- Estilos Globais e de Autenticação -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <!-- Lucide Icons & Supabase CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    .success-celebration-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(22, 163, 74, 0.12);
+      border: 1px solid rgba(22, 163, 74, 0.3);
+      color: var(--color-primary);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: var(--space-3);
+      animation: pulseGreen 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseGreen {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.3); }
+      50% { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+    }
+
+    .purchase-summary-box {
+      background: var(--color-bg-subtle);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      margin-bottom: var(--space-5);
+      font-size: var(--font-size-xs);
+    }
+
+    .purchase-summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .purchase-summary-row:last-child {
+      margin-bottom: 0;
+      padding-top: 6px;
+      border-top: 1px dashed var(--color-border);
+    }
+
+    .verified-email-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--color-primary);
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body class="auth-page">
+
+  <!-- Cabeçalho -->
+  <header class="auth-header">
+    <a href="index.html" class="auth-brand">
+      <img src="assets/logo.svg" alt="SaldoCerto">
+      <span class="auth-brand-text">Saldo<span>Certo</span></span>
+    </a>
+    <button class="btn btn-secondary btn-icon" id="themeToggleBtn" aria-label="Alternar Tema" title="Alternar Tema">
+      <i data-lucide="moon"></i>
+    </button>
+  </header>
+
+  <!-- Container Principal de Boas-Vindas Pós-Compra -->
+  <main class="auth-main">
+    <div class="auth-card" style="max-width: 480px;">
+      
+      <div style="text-align: center; margin-bottom: var(--space-4);">
+        <div class="success-celebration-badge">
+          <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+          Pagamento Aprovado pela Kiwify! 🎉
+        </div>
+        <h1 class="auth-title" style="font-size: 1.65rem;">Bem-vindo(a) ao SaldoCerto!</h1>
+        <p class="auth-subtitle" style="margin-bottom: var(--space-3);">
+          Sua assinatura de <strong>R$ 19,90/mês</strong> foi confirmada. Agora basta definir sua senha de acesso para liberar todas as ferramentas.
+        </p>
+      </div>
+
+      <!-- Resumo do Pedido -->
+      <div class="purchase-summary-box">
+        <div class="purchase-summary-row">
+          <span style="color: var(--color-text-muted);">Plano Contratado:</span>
+          <strong style="color: var(--color-primary);">SaldoCerto Mensal (R$ 19,90)</strong>
+        </div>
+        <div class="purchase-summary-row">
+          <span style="color: var(--color-text-muted);">Status do Pagamento:</span>
+          <span class="badge badge-success" style="font-size: 10px; font-weight: 700;">Aprovado • Acesso Imediato</span>
+        </div>
+        <div class="purchase-summary-row" id="orderIdRow" style="display: none;">
+          <span style="color: var(--color-text-muted);">Código do Pedido:</span>
+          <code id="orderIdText" style="font-size: 11px;">#KIWIFY</code>
+        </div>
+      </div>
+
+      <!-- Mensagens de Alerta / Erro -->
+      <div id="authAlert" class="auth-alert">
+        <i data-lucide="alert-circle" id="alertIcon"></i>
+        <span id="alertMessage"></span>
+      </div>
+
+      <!-- Formulário de Criação de Senha e Ativação -->
+      <form id="activationForm" class="auth-form" novalidate>
+        <div class="auth-field">
+          <label class="auth-label" for="actName">Seu Nome</label>
+          <div class="auth-input-wrap">
+            <i data-lucide="user" class="auth-input-icon"></i>
+            <input 
+              type="text" 
+              id="actName" 
+              class="auth-input" 
+              placeholder="Como quer ser chamado?" 
+              required 
+              autocomplete="name"
+            >
+          </div>
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label" for="actEmail">E-mail de Acesso (utilizado na compra)</label>
+          <div class="auth-input-wrap">
+            <i data-lucide="mail" class="auth-input-icon"></i>
+            <input 
+              type="email" 
+              id="actEmail" 
+              class="auth-input" 
+              placeholder="seuemail@exemplo.com" 
+              required 
+              autocomplete="email"
+            >
+          </div>
+          <span id="verifiedEmailBadge" class="verified-email-badge" style="display: none;">
+            <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
+            E-mail confirmado pelo pagamento na Kiwify
+          </span>
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label" for="actPassword">Defina sua Senha</label>
+          <div class="auth-input-wrap">
+            <i data-lucide="lock" class="auth-input-icon"></i>
+            <input 
+              type="password" 
+              id="actPassword" 
+              class="auth-input" 
+              placeholder="Mínimo de 6 caracteres" 
+              required 
+              autocomplete="new-password"
+            >
+            <button type="button" class="auth-toggle-pass" id="togglePassBtn" aria-label="Mostrar ou ocultar senha">
+              <i data-lucide="eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label" for="actConfirmPassword">Confirme sua Senha</label>
+          <div class="auth-input-wrap">
+            <i data-lucide="shield-check" class="auth-input-icon"></i>
+            <input 
+              type="password" 
+              id="actConfirmPassword" 
+              class="auth-input" 
+              placeholder="Repita sua senha" 
+              required 
+              autocomplete="new-password"
+            >
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary auth-btn-submit" style="font-weight: 700; font-size: 1rem;">
+          <span>Criar Senha e Acessar o SaldoCerto</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
+      </form>
+
+      <div class="auth-footer" style="display: flex; flex-direction: column; gap: 8px;">
+        <div>Já possui uma conta criada anteriormente? <a href="login.html" class="auth-link">Fazer login</a></div>
+        <div style="font-size: 11px; color: var(--color-text-muted);">
+          Dúvidas sobre sua compra? Fale conosco pelo suporte ou responda ao e-mail de confirmação da Kiwify.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Inicializa Lucide Icons
+    lucide.createIcons();
+
+    // Alternador de tema dark/light
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const currentTheme = localStorage.getItem('saldocerto_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    if (themeBtn) {
+      themeBtn.innerHTML = currentTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+      lucide.createIcons();
+      themeBtn.addEventListener('click', () => {
+        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('saldocerto_theme', theme);
+        themeBtn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+        lucide.createIcons();
+      });
+    }
+
+    // Toggle de visibilidade da senha
+    const togglePassBtn = document.getElementById('togglePassBtn');
+    const passInput = document.getElementById('actPassword');
+    if (togglePassBtn && passInput) {
+      togglePassBtn.addEventListener('click', () => {
+        const isPass = passInput.type === 'password';
+        passInput.type = isPass ? 'text' : 'password';
+        togglePassBtn.innerHTML = isPass ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+        lucide.createIcons();
+      });
+    }
+
+    // Alerta na tela
+    const showAlert = (msg, type = 'danger') => {
+      const alert = document.getElementById('authAlert');
+      const message = document.getElementById('alertMessage');
+      if (alert && message) {
+        alert.className = `auth-alert visible ${type}`;
+        message.textContent = msg;
+        lucide.createIcons();
+      }
+    };
+
+    // Leitura inteligente de parâmetros enviados pela Kiwify no redirecionamento
+    const urlParams = new URLSearchParams(window.location.search);
+    const emailParam = urlParams.get('email') || urlParams.get('customer_email') || urlParams.get('buyer_email') || '';
+    const nameParam = urlParams.get('name') || urlParams.get('customer_name') || urlParams.get('buyer_name') || '';
+    const orderIdParam = urlParams.get('order_id') || urlParams.get('order') || urlParams.get('id') || '';
+
+    const nameInput = document.getElementById('actName');
+    const emailInput = document.getElementById('actEmail');
+    const orderRow = document.getElementById('orderIdRow');
+    const orderText = document.getElementById('orderIdText');
+    const verifiedBadge = document.getElementById('verifiedEmailBadge');
+
+    if (nameParam && nameInput) {
+      nameInput.value = decodeURIComponent(nameParam);
+    }
+    if (emailParam && emailInput) {
+      emailInput.value = decodeURIComponent(emailParam).trim();
+      verifiedBadge.style.display = 'inline-flex';
+    }
+    if (orderIdParam && orderRow && orderText) {
+      orderRow.style.display = 'flex';
+      orderText.textContent = `#${decodeURIComponent(orderIdParam).trim()}`;
+    }
+
+    // Formulário de Ativação
+    const form = document.getElementById('activationForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim().toLowerCase();
+      const password = document.getElementById('actPassword').value;
+      const confirmPassword = document.getElementById('actConfirmPassword').value;
+
+      if (!name) {
+        showAlert('Por favor, informe seu nome completo.');
+        return;
+      }
+      if (!email || !email.includes('@')) {
+        showAlert('Por favor, informe o e-mail utilizado na compra da Kiwify.');
+        return;
+      }
+      if (!password || password.length < 6) {
+        showAlert('A senha deve conter no mínimo 6 caracteres.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        showAlert('As senhas digitadas não coincidem. Verifique e tente novamente.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Ativando seu acesso...</span>';
+
+      try {
+        // 1. Registra autorização do comprador no Supabase
+        if (window.supabaseClient) {
+          try {
+            await window.supabaseClient
+              .from('authorized_subscribers')
+              .upsert({
+                email: email,
+                full_name: name,
+                order_id: orderIdParam || 'KIWIFY-CHECKOUT',
+                status: 'active',
+                product_name: 'SaldoCerto Mensal R$ 19,90'
+              }, { onConflict: 'email' });
+          } catch (regErr) {
+            console.warn('[SaldoCerto] Registro em authorized_subscribers:', regErr);
+          }
+        }
+
+        // 2. Cria usuário no Supabase Auth com flag de assinatura ativa
+        const { data, error } = await window.supabaseClient.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: {
+              full_name: name,
+              name: name,
+              subscription_status: 'active',
+              kiwify_order_id: orderIdParam || 'KIWIFY-CHECKOUT'
+            }
+          }
+        });
+
+        if (error) {
+          // Se o usuário já existia (ex: comprou novamente ou já tinha conta), tenta logar diretamente
+          if (error.message && error.message.includes('User already registered')) {
+            const loginRes = await window.supabaseClient.auth.signInWithPassword({
+              email: email,
+              password: password
+            });
+
+            if (!loginRes.error) {
+              // Atualiza profile para ativo
+              await window.supabaseClient
+                .from('profiles')
+                .update({ subscription_status: 'active', kiwify_order_id: orderIdParam || 'KIWIFY-CHECKOUT' })
+                .eq('user_id', loginRes.data.user.id);
+
+              showAlert('Assinatura ativada com sucesso na sua conta! Entrando...', 'success');
+              setTimeout(() => { window.location.href = 'dashboard.html'; }, 900);
+              return;
+            } else {
+              showAlert('Este e-mail já possui uma conta. Por favor, faça login com sua senha atual.', 'info');
+              setTimeout(() => { window.location.href = `login.html?email=${encodeURIComponent(email)}`; }, 1500);
+              return;
+            }
+          }
+          throw error;
+        }
+
+        // 3. Atualiza perfil do usuário para status ativo
+        if (data && data.user) {
+          try {
+            await window.supabaseClient
+              .from('profiles')
+              .upsert({
+                user_id: data.user.id,
+                full_name: name,
+                email: email,
+                subscription_status: 'active',
+                kiwify_order_id: orderIdParam || 'KIWIFY-CHECKOUT'
+              }, { onConflict: 'user_id' });
+          } catch (profErr) {
+            console.warn('[SaldoCerto] Atualização de profile:', profErr);
+          }
+        }
+
+        showAlert('Parabéns! Sua conta e assinatura foram ativadas com sucesso. Entrando...', 'success');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1000);
+
+      } catch (err) {
+        console.error('Erro na ativação:', err);
+        showAlert(err.message || 'Erro ao ativar conta. Tente novamente ou contate o suporte.', 'danger');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Criar Senha e Acessar o SaldoCerto</span><i data-lucide="arrow-right"></i>';
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>

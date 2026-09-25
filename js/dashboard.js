@@ -714,6 +714,13 @@ const DashboardModule = (() => {
 
   const init = async () => {
     SaldoCerto.initShell('dashboard');
+
+    // Valida autenticação e assinatura ativa (Paywall)
+    if (window.SaldoCertoAuth) {
+      const user = await SaldoCertoAuth.requireAuth();
+      if (!user) return;
+    }
+
     setupChartFilters();
 
     // Carrega dados diretamente do Supabase
