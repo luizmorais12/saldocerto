@@ -769,6 +769,9 @@ const SaldoCerto = (() => {
     // Central de Notificações
     initNotificationDrawer();
 
+    // Botão de Lançamento Rápido Flutuante (+)
+    initFloatingActionButton();
+
     // Command Palette (Ctrl+K)
     initCommandPalette();
 
@@ -818,6 +821,28 @@ const SaldoCerto = (() => {
     if (window.lucide) window.lucide.createIcons();
 
     showToast(isNowActive ? 'Modo privacidade ativado (valores ocultos).' : 'Modo privacidade desativado.', 'info');
+  };
+
+  // --- Botão de Lançamento Rápido Flutuante (FAB) ---
+  const initFloatingActionButton = () => {
+    if (document.getElementById('floatingQuickAddBtn')) return;
+    const isAuthOrLanding = ['index.html', 'login.html', 'cadastro.html', 'obrigado.html', 'recuperar-senha.html'].some(p => 
+      window.location.pathname.endsWith(p) || window.location.pathname === '/'
+    );
+    if (isAuthOrLanding) return;
+
+    const fab = document.createElement('button');
+    fab.id = 'floatingQuickAddBtn';
+    fab.className = 'fab-quick-add';
+    fab.setAttribute('aria-label', 'Novo Lançamento Rápido (+)');
+    fab.setAttribute('title', 'Novo Lançamento Rápido (+)');
+    fab.innerHTML = '<i data-lucide="plus"></i>';
+    fab.addEventListener('click', () => {
+      openModal('newTransactionModal');
+    });
+
+    document.body.appendChild(fab);
+    if (window.lucide) window.lucide.createIcons();
   };
 
   // --- Central de Notificações Inteligente ---
