@@ -237,12 +237,22 @@ const DashboardModule = (() => {
         // 1. Contas e Saldo Disponível
         const { data: accountsData } = await window.supabaseClient
           .from('accounts')
-          .select('current_balance, initial_balance')
+          .select('id, name, type, bank_name, current_balance, initial_balance, color')
           .eq('user_id', userId);
 
         let totalBalance = 0;
         if (accountsData && accountsData.length > 0) {
-          totalBalance = accountsData.reduce((acc, a) => acc + Number(a.current_balance || a.initial_balance || 0), 0);
+          totalBalance = accountsData.reduce((acc, a) => acc + Number(a.current_balance !== null ? a.current_balance : a.initial_balance || 0), 0);
+          // Sincroniza estado de contas no SaldoCerto
+          SaldoCerto.getState().accounts = accountsData.map(a => ({
+            id: a.id,
+            name: a.name,
+            type: a.type,
+            bank_name: a.bank_name,
+            balance: Number(a.current_balance !== null ? a.current_balance : a.initial_balance || 0),
+            color: a.color,
+            icon: 'landmark'
+          }));
         }
 
         // 2. Investimentos

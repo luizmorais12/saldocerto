@@ -781,6 +781,9 @@ const SaldoCerto = (() => {
     // Injeção do Modal de Nova Transação Compartilhado
     initTransactionModal();
 
+    // Sincroniza contas bancárias do Supabase
+    syncAccountsFromSupabase();
+
     if (window.lucide) {
       window.lucide.createIcons();
     }
@@ -1133,6 +1136,78 @@ const SaldoCerto = (() => {
         .catch((err) => {
           console.log('PWA Service Worker offline/fallback:', err);
         });
+    }
+  };
+
+  // --- Sincronização Automática de Contas do Supabase ---
+  const syncAccountsFromSupabase = async () => {
+    if (window.isSupabaseConfigured && window.isSupabaseConfigured() && window.supabaseClient) {
+      try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await window.supabaseClient
+          .from('accounts')
+          .select('id, name, type, bank_name, current_balance, initial_balance, color')
+          .eq('user_id', user.id);
+
+        if (!error && data && data.length > 0) {
+          state.accounts = data.map(a => ({
+            id: a.id,
+            name: a.name,
+            type: a.type,
+            bank_name: a.bank_name,
+            balance: Number(a.current_balance !== null ? a.current_balance : a.initial_balance || 0),
+            color: a.color,
+            icon: 'landmark'
+          }));
+
+          const accSelect = document.getElementById('modalTxAccount');
+          if (accSelect) {
+            accSelect.innerHTML = state.accounts.map(a => `<option value="${a.name}">${a.name} (${formatCurrency(a.balance)})</option>`).join('');
+          }
+        }
+      } catch (err) {
+        console.warn('[SaldoCerto App] Aviso syncAccountsFromSupabase:', err);
+      }
+    }
+  };
+
+  // --- Abertura do Modal Pré-Configurado para Lançamento de Salário ---
+  const openSalaryModal = (defaultAccountName = '') => {
+    setModalTxType('income');
+    openModal('newTransactionModal');
+
+    const descInput = document.getElementById('modalTxDesc');
+    const catSelect = document.getElementById('modalTxCategory');
+    const amountInput = document.getElementById('modalTxAmount');
+    const recSelect = document.getElementById('modalTxRecurrence');
+    const accSelect = document.getElementById('modalTxAccount');
+
+    if (descInput) descInput.value = 'Salário Mensal';
+    if (recSelect) recSelect.value = 'Mensal';
+
+    if (catSelect) {
+      for (let i = 0; i < catSelect.options.length; i++) {
+        if (catSelect.options[i].value.includes('Salário') || catSelect.options[i].text.includes('Salário')) {
+          catSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+
+    if (accSelect && defaultAccountName) {
+      for (let i = 0; i < accSelect.options.length; i++) {
+        if (accSelect.options[i].value.includes(defaultAccountName)) {
+          accSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+
+    if (amountInput) {
+      amountInput.placeholder = 'Ex: 3500,00';
+      setTimeout(() => amountInput.focus(), 150);
     }
   };
 
@@ -1667,6 +1742,8 @@ const SaldoCerto = (() => {
     openNotificationDrawer,
     closeNotificationDrawer,
     markAllNotificationsRead,
+    openSalaryModal,
+    syncAccountsFromSupabase,
     openCommandPalette,
     executeCommand,
     CATEGORIES

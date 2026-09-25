@@ -407,7 +407,41 @@ const ContasModule = (() => {
         await updateAccount(editId, { name, type, balance, color });
         SaldoCerto.showToast(`Conta "${name}" atualizada!`, 'success');
       } else {
-        await createAccount({ name, type, balance, color });
+        const createdAcc = await createAccount({ name, type, balance, color });
+        
+        // Se o usuário marcou para lançar o saldo inicial também como salário/receita
+        const alsoIncome = document.getElementById('accAlsoIncome')?.checked;
+        if (alsoIncome && balance > 0) {
+          try {
+            if (window.SaldoCertoTransactions && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+              await SaldoCertoTransactions.createTransaction({
+                type: 'income',
+                description: `Salário / Entrada (${name})`,
+                amount: balance,
+                category: 'Salário Principal (CLT / Concurso / Pró-labore)',
+                account: name,
+                accountId: createdAcc?.id,
+                paymentMethod: 'Transferência',
+                recurrence: 'Mensal',
+                notes: 'Salário cadastrado juntamente com a conta bancária'
+              });
+            } else if (SaldoCerto.addTransaction) {
+              SaldoCerto.addTransaction({
+                type: 'income',
+                description: `Salário / Entrada (${name})`,
+                amount: balance,
+                category: 'Salário Principal (CLT / Concurso / Pró-labore)',
+                account: name,
+                paymentMethod: 'Transferência',
+                recurrence: 'Mensal',
+                date: new Date().toISOString().split('T')[0]
+              });
+            }
+          } catch (txErr) {
+            console.warn('[Contas] Aviso ao registrar receita vinculada:', txErr);
+          }
+        }
+
         SaldoCerto.showToast(`Conta "${name}" criada com sucesso!`, 'success');
       }
 

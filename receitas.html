@@ -160,9 +160,16 @@
             <h1 class="page-title">Controle de Receitas</h1>
             <p class="page-desc">Monitore seus salários, rendimentos extras, investimentos e vendas.</p>
           </div>
-          <button class="btn btn-primary" onclick="ReceitasModule.openAddIncomeModal()">
-            <i data-lucide="plus-circle"></i> Nova receita
-          </button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary" onclick="SaldoCerto.openSalaryModal()">
+              <i data-lucide="briefcase"></i>
+              <span>Cadastrar Salário</span>
+            </button>
+            <button type="button" class="btn btn-primary" onclick="ReceitasModule.openAddIncomeModal()">
+              <i data-lucide="plus-circle"></i>
+              <span>Nova receita</span>
+            </button>
+          </div>
         </div>
 
         <!-- Métricas Rápidas de Receita -->
