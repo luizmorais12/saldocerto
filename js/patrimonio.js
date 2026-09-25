@@ -693,7 +693,8 @@ const PatrimonioModule = (() => {
   const init = async () => {
     SaldoCerto.initShell('patrimonio');
     if (window.SaldoCertoAuth) {
-      await SaldoCertoAuth.requireAuth();
+      const user = await SaldoCertoAuth.requireAuth();
+      if (!user) return;
     }
     if (window.SaldoCertoProfile) {
       await SaldoCertoProfile.syncUserProfileUI();

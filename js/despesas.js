@@ -245,7 +245,8 @@ const DespesasModule = (() => {
   const init = async () => {
     SaldoCerto.initShell('despesas');
     if (window.SaldoCertoAuth) {
-      await SaldoCertoAuth.requireAuth();
+      const user = await SaldoCertoAuth.requireAuth();
+      if (!user) return;
     }
     if (window.SaldoCertoProfile) {
       await SaldoCertoProfile.syncUserProfileUI();

@@ -658,7 +658,8 @@ const CartoesModule = (() => {
   const init = async () => {
     SaldoCerto.initShell('cartoes');
     if (window.SaldoCertoAuth) {
-      await SaldoCertoAuth.requireAuth();
+      const user = await SaldoCertoAuth.requireAuth();
+      if (!user) return;
     }
     if (window.SaldoCertoProfile) {
       await SaldoCertoProfile.syncUserProfileUI();

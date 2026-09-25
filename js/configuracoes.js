@@ -161,7 +161,8 @@ const ConfiguracoesModule = (() => {
   const init = async () => {
     SaldoCerto.initShell('configuracoes');
     if (window.SaldoCertoAuth) {
-      await SaldoCertoAuth.requireAuth();
+      const user = await SaldoCertoAuth.requireAuth();
+      if (!user) return;
     }
     await loadSettingsIntoForm();
 

@@ -270,7 +270,8 @@ const RelatoriosModule = (() => {
   const init = async () => {
     SaldoCerto.initShell('relatorios');
     if (window.SaldoCertoAuth) {
-      await SaldoCertoAuth.requireAuth();
+      const user = await SaldoCertoAuth.requireAuth();
+      if (!user) return;
     }
     if (window.SaldoCertoProfile) {
       await SaldoCertoProfile.syncUserProfileUI();

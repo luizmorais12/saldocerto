@@ -236,7 +236,8 @@ const ReceitasModule = (() => {
   const init = async () => {
     SaldoCerto.initShell('receitas');
     if (window.SaldoCertoAuth) {
-      await SaldoCertoAuth.requireAuth();
+      const user = await SaldoCertoAuth.requireAuth();
+      if (!user) return;
     }
     if (window.SaldoCertoProfile) {
       await SaldoCertoProfile.syncUserProfileUI();

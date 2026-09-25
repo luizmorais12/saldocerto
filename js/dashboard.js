@@ -33,6 +33,15 @@ const DashboardModule = (() => {
           window.location.href = 'login.html';
           return null;
         }
+
+        if (window.SaldoCertoAuth) {
+          const sub = await SaldoCertoAuth.checkSubscription(user);
+          if (!sub || !sub.active) {
+            SaldoCertoAuth.showPaywallModal(user);
+            return null;
+          }
+        }
+
         currentUser = user;
         return user;
       } catch (err) {

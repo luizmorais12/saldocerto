@@ -441,7 +441,8 @@ const MetasModule = (() => {
   const init = async () => {
     SaldoCerto.initShell('metas');
     if (window.SaldoCertoAuth) {
-      await SaldoCertoAuth.requireAuth();
+      const user = await SaldoCertoAuth.requireAuth();
+      if (!user) return;
     }
     if (window.SaldoCertoProfile) {
       await SaldoCertoProfile.syncUserProfileUI();
