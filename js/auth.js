@@ -172,8 +172,9 @@ const SaldoCertoAuth = (() => {
     if (!email) return false;
     const cleanEmail = email.trim().toLowerCase();
 
-    // Conta de admin / desenvolvedor sempre autorizada
-    if (cleanEmail === 'luiz@saldocerto.com.br') return true;
+    // Conta do Dono / Administrador sempre autorizada e liberada
+    const adminEmails = ['luuizmorais@gmail.com', 'luiz@saldocerto.com.br'];
+    if (adminEmails.includes(cleanEmail)) return true;
 
     if (!window.supabaseClient || !window.isSupabaseConfigured()) {
       return true; // Modo fallback se não houver Supabase ativo
@@ -267,9 +268,10 @@ const SaldoCertoAuth = (() => {
   const checkSubscription = async (user) => {
     if (!user) return { active: false };
 
-    // Admin / desenvolvedor sempre liberado
-    if (user.email === 'luiz@saldocerto.com.br') {
-      return { active: true, plan: 'admin' };
+    // Dono / Administrador sempre liberado (Acesso Vitalício Master)
+    const adminEmails = ['luuizmorais@gmail.com', 'luiz@saldocerto.com.br'];
+    if (user.email && adminEmails.includes(user.email.toLowerCase())) {
+      return { active: true, plan: 'owner_lifetime' };
     }
 
     if (!window.supabaseClient || !window.isSupabaseConfigured()) {

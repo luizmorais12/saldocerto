@@ -18,7 +18,7 @@ const SaldoCerto = (() => {
     liabilities: [],
     settings: {
       userName: 'Luiz',
-      userEmail: 'luiz@saldocerto.com.br',
+      userEmail: 'luuizmorais@gmail.com',
       currency: 'BRL',
       firstDayOfMonth: 1,
       theme: 'light'
@@ -292,7 +292,7 @@ const SaldoCerto = (() => {
       ],
       settings: {
         userName: 'Luiz',
-        userEmail: 'luiz@saldocerto.com.br',
+        userEmail: 'luuizmorais@gmail.com',
         currency: 'BRL',
         firstDayOfMonth: 1,
         theme: 'light'
