@@ -1175,6 +1175,15 @@ const SaldoCerto = (() => {
 
   // --- Abertura do Modal Pré-Configurado para Lançamento de Salário ---
   const openSalaryModal = (defaultAccountName = '') => {
+    initTransactionModal();
+    const modalIdInput = document.getElementById('modalTxId');
+    if (modalIdInput) modalIdInput.value = '';
+
+    const titleText = document.getElementById('modalTxTitleText');
+    if (titleText) titleText.textContent = 'Cadastrar Salário Mensal';
+    const btnSubmitText = document.getElementById('btnSubmitTxText');
+    if (btnSubmitText) btnSubmitText.textContent = 'Salvar Salário';
+
     setModalTxType('income');
     openModal('newTransactionModal');
 
@@ -1183,7 +1192,11 @@ const SaldoCerto = (() => {
     const amountInput = document.getElementById('modalTxAmount');
     const recSelect = document.getElementById('modalTxRecurrence');
     const accSelect = document.getElementById('modalTxAccount');
+    const box = document.getElementById('modalTxInstallmentsBox');
+    const instSelect = document.getElementById('modalTxInstallments');
 
+    if (box) box.style.display = 'none';
+    if (instSelect) instSelect.value = '1';
     if (descInput) descInput.value = 'Salário Mensal';
     if (recSelect) recSelect.value = 'Mensal';
 
@@ -1206,9 +1219,108 @@ const SaldoCerto = (() => {
     }
 
     if (amountInput) {
-      amountInput.placeholder = 'Ex: 3500,00';
+      amountInput.value = '';
+      amountInput.placeholder = 'Ex: 4400,00';
       setTimeout(() => amountInput.focus(), 150);
     }
+  };
+
+  // --- Abertura do Modal de Edição de Transação (Receita ou Despesa) ---
+  const openEditTransactionModal = async (id) => {
+    initTransactionModal();
+
+    let tx = state.transactions.find(t => t.id === id);
+    if (!tx && window.SaldoCertoTransactions) {
+      tx = await SaldoCertoTransactions.getTransaction(id);
+    }
+
+    if (!tx) {
+      showToast('Transação não encontrada para edição.', 'danger');
+      return;
+    }
+
+    const modalIdInput = document.getElementById('modalTxId');
+    if (modalIdInput) modalIdInput.value = tx.id;
+
+    // Configura o tipo (receita / despesa)
+    setModalTxType(tx.type);
+
+    // Ajusta título do modal e botão
+    const titleText = document.getElementById('modalTxTitleText');
+    if (titleText) {
+      titleText.textContent = tx.type === 'income' ? 'Editar Receita' : 'Editar Despesa';
+    }
+    const btnSubmitText = document.getElementById('btnSubmitTxText');
+    if (btnSubmitText) {
+      btnSubmitText.textContent = 'Salvar Alterações';
+    }
+
+    // Preenche campos
+    const descInput = document.getElementById('modalTxDesc');
+    if (descInput) {
+      descInput.value = (tx.description || '').replace(/\s*\(\d+\/\d+\)/, '');
+    }
+
+    const amountInput = document.getElementById('modalTxAmount');
+    if (amountInput) {
+      amountInput.value = Number(tx.amount || 0).toFixed(2);
+    }
+
+    const dateInput = document.getElementById('modalTxDate');
+    if (dateInput) {
+      dateInput.value = tx.date || tx.transaction_date || new Date().toISOString().split('T')[0];
+    }
+
+    const catSelect = document.getElementById('modalTxCategory');
+    if (catSelect) {
+      let found = false;
+      for (let i = 0; i < catSelect.options.length; i++) {
+        if (catSelect.options[i].value === tx.category || catSelect.options[i].text.includes(tx.category)) {
+          catSelect.selectedIndex = i;
+          found = true;
+          break;
+        }
+      }
+      if (!found && tx.category) {
+        const opt = new Option(tx.category, tx.category, true, true);
+        catSelect.add(opt);
+      }
+    }
+
+    const accSelect = document.getElementById('modalTxAccount');
+    if (accSelect && tx.account) {
+      for (let i = 0; i < accSelect.options.length; i++) {
+        if (accSelect.options[i].value === tx.account || accSelect.options[i].text.includes(tx.account)) {
+          accSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+
+    const paySelect = document.getElementById('modalTxPaymentMethod');
+    if (paySelect && (tx.paymentMethod || tx.payment_method)) {
+      paySelect.value = tx.paymentMethod || tx.payment_method;
+    }
+
+    const recSelect = document.getElementById('modalTxRecurrence');
+    if (recSelect) {
+      recSelect.value = tx.recurrence || tx.recurrence_type || 'Única';
+    }
+
+    const notesInput = document.getElementById('modalTxNotes');
+    if (notesInput) {
+      notesInput.value = (tx.notes || '').replace(/\[PARCELADO [^\]]+\]/g, '').replace(/\[RECORRENTE MENSAL\]/g, '').trim();
+    }
+
+    if (tx.type === 'expense') {
+      checkInstallmentTrigger();
+    } else {
+      const box = document.getElementById('modalTxInstallmentsBox');
+      if (box) box.style.display = 'none';
+    }
+
+    openModal('newTransactionModal');
+    if (window.lucide) window.lucide.createIcons();
   };
 
   // --- Modal Global de Nova Transação ---
@@ -1245,14 +1357,15 @@ const SaldoCerto = (() => {
       <div id="newTransactionModal" class="modal-overlay">
         <div class="modal-dialog">
           <div class="modal-header">
-            <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
-              <i data-lucide="plus-circle" class="text-primary"></i> Nova Transação
+            <h3 class="modal-title" id="modalTxTitle" style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="plus-circle" class="text-primary" id="modalTxTitleIcon"></i> <span id="modalTxTitleText">Nova Transação</span>
             </h3>
             <button class="modal-close" onclick="SaldoCerto.closeModal('newTransactionModal')">
               <i data-lucide="x"></i>
             </button>
           </div>
           <form id="globalTransactionForm" onsubmit="SaldoCerto.handleSaveTransaction(event)">
+            <input type="hidden" id="modalTxId" value="">
             <div class="modal-body">
               <!-- Seletor de Tipo (Receita vs Despesa) -->
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-3);">
@@ -1337,21 +1450,22 @@ const SaldoCerto = (() => {
                 </div>
               </div>
 
-              <!-- Caixa de Parcelamento de Despesa / Receita com Cálculo Imediato -->
+              <!-- Caixa de Parcelamento de Despesa com Cálculo Imediato -->
               <div id="modalTxInstallmentsBox" style="display: none; background: var(--color-bg-subtle); padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-bottom: var(--space-3);">
                 <div style="font-size: 12px; font-weight: 700; color: var(--color-text); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
                   <i data-lucide="layers" style="width: 14px; height: 14px; color: var(--color-primary);"></i>
-                  Condições do Parcelamento
+                  Condições do Parcelamento da Despesa
                 </div>
                 
                 <div class="form-row" style="margin-bottom: var(--space-3);">
                   <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label" style="font-size: var(--font-size-xs);">Número de Parcelas</label>
                     <select id="modalTxInstallments" class="form-select" onchange="SaldoCerto.updateInstallmentCalc()">
+                      <option value="1">1x (Sem parcelamento)</option>
                       <option value="2">2x</option>
                       <option value="3">3x</option>
                       <option value="4">4x</option>
-                      <option value="5" selected>5x</option>
+                      <option value="5">5x</option>
                       <option value="6">6x</option>
                       <option value="8">8x</option>
                       <option value="10">10x</option>
@@ -1374,8 +1488,8 @@ const SaldoCerto = (() => {
 
                 <!-- Banner Informativo com os valores calculados -->
                 <div id="modalTxInstallmentCalcBanner" style="padding: 10px 12px; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: var(--radius-sm); font-size: 12px; color: var(--color-text);">
-                  <div style="font-weight: 700; color: var(--color-primary); margin-bottom: 2px;" id="modalTxInstallmentPlanTitle">5x de R$ 52,00 por mês</div>
-                  <div style="font-size: 11px; color: var(--color-text-muted);" id="modalTxInstallmentPlanSub">Impacto no mês atual: R$ 52,00 • Valor Total da Compra: R$ 260,00</div>
+                  <div style="font-weight: 700; color: var(--color-primary); margin-bottom: 2px;" id="modalTxInstallmentPlanTitle">Informe os dados</div>
+                  <div style="font-size: 11px; color: var(--color-text-muted);" id="modalTxInstallmentPlanSub">O impacto mensal aparecerá aqui automaticamente.</div>
                 </div>
               </div>
 
@@ -1388,7 +1502,7 @@ const SaldoCerto = (() => {
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" onclick="SaldoCerto.closeModal('newTransactionModal')">Cancelar</button>
               <button type="submit" class="btn btn-primary" id="btnSubmitTx">
-                <i data-lucide="check"></i> Salvar Transação
+                <i data-lucide="check"></i> <span id="btnSubmitTxText">Salvar Transação</span>
               </button>
             </div>
           </form>
@@ -1442,11 +1556,20 @@ const SaldoCerto = (() => {
       expenseBtn.style.color = 'var(--color-danger)';
       incomeBtn.style.border = '2px solid var(--color-border)';
       incomeBtn.style.color = 'var(--color-text-muted)';
+      checkInstallmentTrigger();
     } else {
       incomeBtn.style.border = '2px solid var(--color-success)';
       incomeBtn.style.color = 'var(--color-success)';
       expenseBtn.style.border = '2px solid var(--color-border)';
       expenseBtn.style.color = 'var(--color-text-muted)';
+
+      // Receita NUNCA deve exibir caixa de parcelamento ou dividir por parcelas!
+      const box = document.getElementById('modalTxInstallmentsBox');
+      if (box) box.style.display = 'none';
+      const instSelect = document.getElementById('modalTxInstallments');
+      if (instSelect) instSelect.value = '1';
+      const recSelect = document.getElementById('modalTxRecurrence');
+      if (recSelect && recSelect.value === 'Parcelada') recSelect.value = 'Única';
     }
 
     populateCategoriesSelect(type);
@@ -1489,25 +1612,47 @@ const SaldoCerto = (() => {
   };
 
   const checkInstallmentTrigger = () => {
+    const type = document.getElementById('modalTxType')?.value;
+    const box = document.getElementById('modalTxInstallmentsBox');
+    if (!box) return;
+
+    // Se for receita, nunca abre parcelamento de compra
+    if (type === 'income') {
+      box.style.display = 'none';
+      return;
+    }
+
     const payMethod = document.getElementById('modalTxPaymentMethod')?.value;
     const rec = document.getElementById('modalTxRecurrence')?.value;
-    const box = document.getElementById('modalTxInstallmentsBox');
-    if (box) {
-      if (rec === 'Parcelada' || payMethod === 'Cartão de Crédito') {
-        box.style.display = 'block';
-        updateInstallmentCalc();
-      } else {
-        box.style.display = 'none';
-      }
+    if (rec === 'Parcelada' || payMethod === 'Cartão de Crédito') {
+      box.style.display = 'block';
+      updateInstallmentCalc();
+    } else {
+      box.style.display = 'none';
     }
   };
 
   const updateInstallmentCalc = () => {
+    const type = document.getElementById('modalTxType')?.value;
     const amount = parseFloat(document.getElementById('modalTxAmount')?.value) || 0;
-    const inst = parseInt(document.getElementById('modalTxInstallments')?.value || '1', 10);
-    const instType = document.getElementById('modalTxInstallmentType')?.value || 'total';
     const planTitle = document.getElementById('modalTxInstallmentPlanTitle');
     const planSub = document.getElementById('modalTxInstallmentPlanSub');
+
+    if (type === 'income') {
+      if (planTitle && planSub) {
+        if (amount > 0) {
+          planTitle.textContent = `Receita Integral: ${formatCurrency(amount)}`;
+          planSub.textContent = `Entrada sem parcelamento no valor total de ${formatCurrency(amount)}.`;
+        } else {
+          planTitle.textContent = 'Informe o valor da receita';
+          planSub.textContent = 'O valor total integral será creditado no mês correspondente.';
+        }
+      }
+      return;
+    }
+
+    const inst = parseInt(document.getElementById('modalTxInstallments')?.value || '1', 10);
+    const instType = document.getElementById('modalTxInstallmentType')?.value || 'total';
 
     let perInst = 0;
     let totalAmt = 0;
@@ -1621,6 +1766,7 @@ const SaldoCerto = (() => {
 
   const handleSaveTransaction = async (e) => {
     e.preventDefault();
+    const editId = document.getElementById('modalTxId')?.value || '';
     const type = document.getElementById('modalTxType').value;
     let desc = document.getElementById('modalTxDesc').value.trim();
     const rawAmount = document.getElementById('modalTxAmount').value;
@@ -1628,7 +1774,7 @@ const SaldoCerto = (() => {
     const category = document.getElementById('modalTxCategory').value;
     const account = document.getElementById('modalTxAccount').value;
     const paymentMethod = document.getElementById('modalTxPaymentMethod').value;
-    const recurrence = document.getElementById('modalTxRecurrence').value;
+    let recurrence = document.getElementById('modalTxRecurrence').value;
     const installments = parseInt(document.getElementById('modalTxInstallments')?.value || '1', 10);
     const instType = document.getElementById('modalTxInstallmentType')?.value || 'total';
     let notes = document.getElementById('modalTxNotes').value.trim();
@@ -1642,25 +1788,40 @@ const SaldoCerto = (() => {
     let monthlyAmount = inputAmount;
     let totalFinancedAmount = inputAmount;
 
-    if (installments > 1 || recurrence === 'Parcelada') {
-      if (instType === 'total') {
-        monthlyAmount = inputAmount / (installments > 1 ? installments : 1);
-        totalFinancedAmount = inputAmount;
-      } else {
-        monthlyAmount = inputAmount;
-        totalFinancedAmount = inputAmount * installments;
+    if (type === 'income') {
+      // Receita é SEMPRE integral! Nunca divide!
+      monthlyAmount = inputAmount;
+      totalFinancedAmount = inputAmount;
+      if (recurrence === 'Parcelada') recurrence = 'Única';
+      if (recurrence === 'Mensal') {
+        const recurTag = `[RECORRENTE MENSAL]`;
+        if (!notes.includes(recurTag)) {
+          notes = notes ? `${recurTag} ${notes}` : `${recurTag} Entrada fixa mensal.`;
+        }
       }
+    } else {
+      // Despesa
+      if (installments > 1 || recurrence === 'Parcelada') {
+        recurrence = 'Parcelada';
+        if (instType === 'total') {
+          monthlyAmount = inputAmount / (installments > 1 ? installments : 1);
+          totalFinancedAmount = inputAmount;
+        } else {
+          monthlyAmount = inputAmount;
+          totalFinancedAmount = inputAmount * installments;
+        }
 
-      if (!desc.includes('(')) {
-        desc = `${desc} (1/${installments})`;
-      }
+        if (!desc.includes('(')) {
+          desc = `${desc} (1/${installments})`;
+        }
 
-      const installmentTag = `[PARCELADO 1/${installments}: ${installments}x de ${formatCurrency(monthlyAmount)} | Total: ${formatCurrency(totalFinancedAmount)}]`;
-      notes = notes ? `${installmentTag} ${notes}` : `${installmentTag} Compra parcelada em ${installments}x.`;
-    } else if (recurrence === 'Mensal') {
-      const recurTag = `[RECORRENTE MENSAL]`;
-      if (!notes.includes('[RECORRENTE MENSAL]')) {
-        notes = notes ? `${recurTag} ${notes}` : `${recurTag} Movimentação fixa mensal.`;
+        const installmentTag = `[PARCELADO 1/${installments}: ${installments}x de ${formatCurrency(monthlyAmount)} | Total: ${formatCurrency(totalFinancedAmount)}]`;
+        notes = notes ? `${installmentTag} ${notes}` : `${installmentTag} Compra parcelada em ${installments}x.`;
+      } else if (recurrence === 'Mensal') {
+        const recurTag = `[RECORRENTE MENSAL]`;
+        if (!notes.includes('[RECORRENTE MENSAL]')) {
+          notes = notes ? `${recurTag} ${notes}` : `${recurTag} Movimentação fixa mensal.`;
+        }
       }
     }
 
@@ -1672,23 +1833,39 @@ const SaldoCerto = (() => {
       category,
       account,
       paymentMethod,
-      recurrence: installments > 1 ? 'Parcelada' : recurrence,
+      recurrence: (type !== 'income' && installments > 1) ? 'Parcelada' : recurrence,
       notes
     };
 
-    if (window.SaldoCertoTransactions && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
-      try {
-        await SaldoCertoTransactions.createTransaction(txPayload);
-      } catch (err) {
-        console.warn('Erro ao salvar transação no Supabase, caindo para local:', err);
+    if (editId) {
+      if (window.SaldoCertoTransactions && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+        try {
+          await SaldoCertoTransactions.updateTransaction(editId, txPayload);
+        } catch (err) {
+          console.warn('Erro ao atualizar no Supabase, caindo para local:', err);
+          updateTransaction(editId, txPayload);
+        }
+      } else {
+        updateTransaction(editId, txPayload);
+      }
+      showToast('Transação atualizada com sucesso!', 'success');
+    } else {
+      if (window.SaldoCertoTransactions && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+        try {
+          await SaldoCertoTransactions.createTransaction(txPayload);
+        } catch (err) {
+          console.warn('Erro ao salvar transação no Supabase, caindo para local:', err);
+          addTransaction(txPayload);
+        }
+      } else {
         addTransaction(txPayload);
       }
-    } else {
-      addTransaction(txPayload);
     }
 
     closeModal('newTransactionModal');
     document.getElementById('globalTransactionForm').reset();
+    const modalIdInput = document.getElementById('modalTxId');
+    if (modalIdInput) modalIdInput.value = '';
     populateModalFormFields();
 
     // Notifica tela ativa para re-renderizar em tempo real
@@ -1743,6 +1920,8 @@ const SaldoCerto = (() => {
     closeNotificationDrawer,
     markAllNotificationsRead,
     openSalaryModal,
+    openEditTransactionModal,
+    initTransactionModal,
     syncAccountsFromSupabase,
     openCommandPalette,
     executeCommand,

@@ -1,27 +1,64 @@
 /**
  * SaldoCerto - Módulo de Despesas (Supabase Integrado)
- * Listagem, filtros por categoria e pagamento, gráficos e exclusão com RLS.
+ * Listagem, filtros por categoria e pagamento, gráficos, busca e edição com RLS.
  */
 
 const DespesasModule = (() => {
   let expenseChart = null;
 
+  const normalizeStr = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
   const getFilteredExpenses = () => {
     const periodTxs = SaldoCerto.getTransactionsForSelectedPeriod();
     let expenses = periodTxs.filter(t => t.type === 'expense');
 
-    const search = (document.getElementById('expenseSearchInput')?.value || '').toLowerCase().trim();
+    const searchRaw = (document.getElementById('expenseSearchInput')?.value || '').trim();
+    const search = normalizeStr(searchRaw);
     const catFilter = document.getElementById('expenseCategoryFilter')?.value || 'all';
     const payFilter = document.getElementById('expensePaymentFilter')?.value || 'all';
 
     if (search) {
-      expenses = expenses.filter(t => t.description.toLowerCase().includes(search));
+      let filtered = expenses.filter(t => {
+        const d = normalizeStr(t.description);
+        const c = normalizeStr(t.category);
+        const p = normalizeStr(t.paymentMethod || t.payment_method);
+        const a = normalizeStr(t.account);
+        const n = normalizeStr(t.notes);
+        const amt = String(t.amount || '');
+        const amtFmt = normalizeStr(SaldoCerto.formatCurrency(t.amount));
+        return d.includes(search) || c.includes(search) || p.includes(search) || a.includes(search) || n.includes(search) || amt.includes(search) || amtFmt.includes(search);
+      });
+
+      if (filtered.length === 0) {
+        const allExpenses = SaldoCerto.getState().transactions.filter(t => t.type === 'expense');
+        filtered = allExpenses.filter(t => {
+          const d = normalizeStr(t.description);
+          const c = normalizeStr(t.category);
+          const p = normalizeStr(t.paymentMethod || t.payment_method);
+          const a = normalizeStr(t.account);
+          const n = normalizeStr(t.notes);
+          const amt = String(t.amount || '');
+          const amtFmt = normalizeStr(SaldoCerto.formatCurrency(t.amount));
+          return d.includes(search) || c.includes(search) || p.includes(search) || a.includes(search) || n.includes(search) || amt.includes(search) || amtFmt.includes(search);
+        });
+      }
+      expenses = filtered;
     }
+
     if (catFilter !== 'all') {
-      expenses = expenses.filter(t => t.category === catFilter || (t.category && t.category.toLowerCase().includes(catFilter.toLowerCase())));
+      const normCatFilter = normalizeStr(catFilter);
+      expenses = expenses.filter(t => {
+        const cat = normalizeStr(t.category);
+        return cat === normCatFilter || cat.includes(normCatFilter);
+      });
     }
+
     if (payFilter !== 'all') {
-      expenses = expenses.filter(t => t.paymentMethod === payFilter);
+      const normPayFilter = normalizeStr(payFilter);
+      expenses = expenses.filter(t => {
+        const pay = normalizeStr(t.paymentMethod || t.payment_method);
+        return pay === normPayFilter || pay.includes(normPayFilter);
+      });
     }
 
     return expenses;
@@ -34,7 +71,8 @@ const DespesasModule = (() => {
 
     const catMap = {};
     expenses.forEach(t => {
-      catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount || 0);
+      const catClean = (t.category || 'Outros').split('(')[0].trim();
+      catMap[catClean] = (catMap[catClean] || 0) + Number(t.amount || 0);
     });
 
     let topCat = '—';
@@ -124,7 +162,7 @@ const DespesasModule = (() => {
   };
 
   const renderTable = (expenses) => {
-    const tbody = document.getElementById('expenseTableBody');
+    const tbody = document.getElementById('expensesTableBody') || document.getElementById('expenseTableBody');
     if (!tbody) return;
 
     if (expenses.length === 0) {
@@ -179,7 +217,7 @@ const DespesasModule = (() => {
 
       return `
         <tr>
-          <td><strong>${SaldoCerto.formatDate(t.date)}</strong></td>
+          <td><strong>${SaldoCerto.formatDate(t.date || t.transaction_date)}</strong></td>
           <td>
             <div style="font-weight: 600; display: flex; align-items: center; flex-wrap: wrap;">
               <span>${t.description}</span>
@@ -193,7 +231,7 @@ const DespesasModule = (() => {
           <td><span class="badge badge-info">${t.account || 'Principal'}</span></td>
           <td>
             <span class="badge" style="background: var(--color-bg-subtle); color: var(--color-text-secondary);">
-              ${t.paymentMethod || 'PIX'}
+              ${t.paymentMethod || t.payment_method || 'PIX'}
             </span>
           </td>
           <td>
@@ -203,7 +241,10 @@ const DespesasModule = (() => {
             ${underAmountHtml}
           </td>
           <td>
-            <div class="table-actions">
+            <div class="table-actions" style="display: flex; gap: 4px; align-items: center;">
+              <button class="btn-icon" style="width: 32px; height: 32px;" title="Editar despesa" onclick="SaldoCerto.openEditTransactionModal('${t.id}')">
+                <i data-lucide="edit-3" style="width: 14px; height: 14px; color: var(--color-primary);"></i>
+              </button>
               <button class="btn-icon" style="width: 32px; height: 32px;" title="Excluir despesa" onclick="DespesasModule.handleDelete('${t.id}')">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--color-danger);"></i>
               </button>
@@ -228,6 +269,15 @@ const DespesasModule = (() => {
   };
 
   const openAddExpenseModal = () => {
+    SaldoCerto.initTransactionModal && SaldoCerto.initTransactionModal();
+    const modalIdInput = document.getElementById('modalTxId');
+    if (modalIdInput) modalIdInput.value = '';
+
+    const titleText = document.getElementById('modalTxTitleText');
+    if (titleText) titleText.textContent = 'Nova Despesa';
+    const btnSubmitText = document.getElementById('btnSubmitTxText');
+    if (btnSubmitText) btnSubmitText.textContent = 'Salvar Despesa';
+
     SaldoCerto.setModalTxType('expense');
     SaldoCerto.openModal('newTransactionModal');
   };

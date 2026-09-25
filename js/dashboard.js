@@ -468,10 +468,15 @@ const DashboardModule = (() => {
               </span>
             </div>
           </div>
-          <div class="tx-right">
-            <span class="tx-amount ${amountClass}">${sign} ${SaldoCerto.formatCurrency(tx.amount)}</span>
-            ${underAmountHtml}
-            <span class="tx-account-badge">${tx.payment_method || tx.paymentMethod || 'PIX'}</span>
+          <div class="tx-right" style="display: flex; align-items: center; gap: 8px;">
+            <div style="text-align: right;">
+              <span class="tx-amount ${amountClass}">${sign} ${SaldoCerto.formatCurrency(tx.amount)}</span>
+              ${underAmountHtml}
+              <span class="tx-account-badge">${tx.payment_method || tx.paymentMethod || 'PIX'}</span>
+            </div>
+            <button class="btn-icon" style="width: 28px; height: 28px; padding: 0;" title="Editar transação" onclick="SaldoCerto.openEditTransactionModal('${tx.id}')">
+              <i data-lucide="edit-3" style="width: 14px; height: 14px; color: var(--color-primary);"></i>
+            </button>
           </div>
         </div>
       `;

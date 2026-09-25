@@ -1,23 +1,55 @@
 /**
  * SaldoCerto - Módulo de Receitas (Supabase Integrado)
- * Listagem, filtros por período e categoria, gráficos e exclusão com RLS.
+ * Listagem, filtros por período e categoria, gráficos, busca e edição com RLS.
  */
 
 const ReceitasModule = (() => {
   let incomeChart = null;
 
+  const normalizeStr = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
   const getFilteredIncomes = () => {
     const periodTxs = SaldoCerto.getTransactionsForSelectedPeriod();
     let incomes = periodTxs.filter(t => t.type === 'income');
 
-    const search = (document.getElementById('incomeSearchInput')?.value || '').toLowerCase().trim();
+    const searchRaw = (document.getElementById('incomeSearchInput')?.value || '').trim();
+    const search = normalizeStr(searchRaw);
     const catFilter = document.getElementById('incomeCategoryFilter')?.value || 'all';
 
     if (search) {
-      incomes = incomes.filter(t => t.description.toLowerCase().includes(search));
+      // Tenta filtrar no mês selecionado
+      let filtered = incomes.filter(t => {
+        const d = normalizeStr(t.description);
+        const c = normalizeStr(t.category);
+        const a = normalizeStr(t.account);
+        const n = normalizeStr(t.notes);
+        const amt = String(t.amount || '');
+        const amtFmt = normalizeStr(SaldoCerto.formatCurrency(t.amount));
+        return d.includes(search) || c.includes(search) || a.includes(search) || n.includes(search) || amt.includes(search) || amtFmt.includes(search);
+      });
+
+      // Se não houver correspondência no mês atual mas o usuário pesquisou algo específico, busca em todas as receitas
+      if (filtered.length === 0) {
+        const allIncomes = SaldoCerto.getState().transactions.filter(t => t.type === 'income');
+        filtered = allIncomes.filter(t => {
+          const d = normalizeStr(t.description);
+          const c = normalizeStr(t.category);
+          const a = normalizeStr(t.account);
+          const n = normalizeStr(t.notes);
+          const amt = String(t.amount || '');
+          const amtFmt = normalizeStr(SaldoCerto.formatCurrency(t.amount));
+          return d.includes(search) || c.includes(search) || a.includes(search) || n.includes(search) || amt.includes(search) || amtFmt.includes(search);
+        });
+      }
+      incomes = filtered;
     }
+
     if (catFilter !== 'all') {
-      incomes = incomes.filter(t => t.category === catFilter || (t.category && t.category.toLowerCase().includes(catFilter.toLowerCase())));
+      const normCatFilter = normalizeStr(catFilter);
+      incomes = incomes.filter(t => {
+        const cat = normalizeStr(t.category);
+        return cat === normCatFilter || cat.includes(normCatFilter);
+      });
     }
 
     return incomes;
@@ -31,7 +63,8 @@ const ReceitasModule = (() => {
     // Acha a maior categoria
     const catMap = {};
     incomes.forEach(t => {
-      catMap[t.category] = (catMap[t.category] || 0) + Number(t.amount || 0);
+      const catClean = (t.category || 'Outras').split('(')[0].trim();
+      catMap[catClean] = (catMap[catClean] || 0) + Number(t.amount || 0);
     });
 
     let topCat = '—';
@@ -120,7 +153,7 @@ const ReceitasModule = (() => {
   };
 
   const renderTable = (incomes) => {
-    const tbody = document.getElementById('incomeTableBody');
+    const tbody = document.getElementById('incomesTableBody') || document.getElementById('incomeTableBody');
     if (!tbody) return;
 
     if (incomes.length === 0) {
@@ -175,7 +208,7 @@ const ReceitasModule = (() => {
 
       return `
         <tr>
-          <td><strong>${SaldoCerto.formatDate(t.date)}</strong></td>
+          <td><strong>${SaldoCerto.formatDate(t.date || t.transaction_date)}</strong></td>
           <td>
             <div style="font-weight: 600; display: flex; align-items: center; flex-wrap: wrap;">
               <span>${t.description}</span>
@@ -194,7 +227,10 @@ const ReceitasModule = (() => {
             ${underAmountHtml}
           </td>
           <td>
-            <div class="table-actions">
+            <div class="table-actions" style="display: flex; gap: 4px; align-items: center;">
+              <button class="btn-icon" style="width: 32px; height: 32px;" title="Editar receita" onclick="SaldoCerto.openEditTransactionModal('${t.id}')">
+                <i data-lucide="edit-3" style="width: 14px; height: 14px; color: var(--color-primary);"></i>
+              </button>
               <button class="btn-icon" style="width: 32px; height: 32px;" title="Excluir receita" onclick="ReceitasModule.handleDelete('${t.id}')">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--color-danger);"></i>
               </button>
@@ -219,6 +255,15 @@ const ReceitasModule = (() => {
   };
 
   const openAddIncomeModal = () => {
+    SaldoCerto.initTransactionModal && SaldoCerto.initTransactionModal();
+    const modalIdInput = document.getElementById('modalTxId');
+    if (modalIdInput) modalIdInput.value = '';
+
+    const titleText = document.getElementById('modalTxTitleText');
+    if (titleText) titleText.textContent = 'Nova Receita';
+    const btnSubmitText = document.getElementById('btnSubmitTxText');
+    if (btnSubmitText) btnSubmitText.textContent = 'Salvar Receita';
+
     SaldoCerto.setModalTxType('income');
     SaldoCerto.openModal('newTransactionModal');
   };
